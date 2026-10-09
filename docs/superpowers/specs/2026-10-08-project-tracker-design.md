@@ -334,16 +334,16 @@ NEXTAUTH_SECRET=...
 NEXTAUTH_URL=http://localhost:3000
 
 # Cloudflare R2
-R2_ACCOUNT_ID=25887fc23178ef88592d8022fbe1a455
-R2_ACCESS_KEY_ID=328fefd6cd0960101973bbb03ac17401
-R2_SECRET_ACCESS_KEY=cbbc30904d48bea267cbfe9cec871a639d25568bcbafba171ea4d98974362fe9
-R2_BUCKET_NAME=trading-bot-images
-R2_PUBLIC_URL=https://pub-855a9852abf24676ba85e092ba19bb9f.r2.dev
+R2_ACCOUNT_ID=your_account_id
+R2_ACCESS_KEY_ID=your_access_key
+R2_SECRET_ACCESS_KEY=your_secret_key
+R2_BUCKET_NAME=your_bucket_name
+R2_PUBLIC_URL=https://your-r2-public-url.r2.dev
 
 # WhatsApp Gateway
-WA_API_URL=https://wagate.devbelanjamu.tech
-WA_API_KEY=44e887597e3a7e974de7
-WA_ADMIN_PHONE=6287834761210
+WA_API_URL=https://your-wa-gateway-url
+WA_API_KEY=your_wa_api_key
+WA_ADMIN_PHONE=your_phone_number
 
 # App
 APP_URL=http://localhost:3000
