@@ -90,6 +90,8 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
 
   const isAdmin = session?.user?.role === 'ADMIN'
   const isAssignee = session?.user?.id === issue.assignedTo?.id
+  const isDeveloper = session?.user?.role === 'DEVELOPER'
+  const canUpdateStatus = isAdmin || isAssignee || isDeveloper
 
   const statuses = ['OPEN', 'IN_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
   const developers = members.filter(m => m.user.role === 'DEVELOPER' || m.user.role === 'ADMIN')
@@ -136,8 +138,8 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
           {issue.assignedTo && <span>Assigned to {issue.assignedTo.name}</span>}
         </div>
 
-        {/* Controls (admin + assignee) */}
-        {(isAdmin || isAssignee) && (
+        {/* Controls (admin, assignee, or developer) */}
+        {canUpdateStatus && (
           <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
             <div>
               <label className="label">Status</label>

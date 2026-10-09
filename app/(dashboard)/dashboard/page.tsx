@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { FolderKanban, AlertCircle, CheckCircle2, ArrowRight, Users, Clock, TrendingUp, Plus } from 'lucide-react'
+import { FolderKanban, AlertCircle, CheckCircle2, ArrowRight, Users, TrendingUp, Plus } from 'lucide-react'
 import { StatusBadge } from '@/components/status-badge'
 
 interface Project {
@@ -42,7 +42,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6" style={{ maxWidth: '1100px' }}>
 
       {/* Welcome header */}
-      <div className="flex items-center justify-between p-6 rounded-2xl" style={{ backgroundColor: '#202524' }}>
+      <div className="dashboard-welcome">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shrink-0" style={{ backgroundColor: 'var(--accent)' }}>
             {(session?.user?.name || 'U')[0].toUpperCase()}
@@ -50,10 +50,10 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Welcome back</p>
             <h1 className="text-xl font-bold text-white">{session?.user?.name}</h1>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{session?.user?.role} · WeballCreative</p>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)', marginTop: '0.125rem' }}>{session?.user?.role} · WeballCreative</p>
           </div>
         </div>
-        <div className="text-right hidden sm:block">
+        <div className="dashboard-welcome-meta">
           <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
             {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
@@ -66,16 +66,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="dashboard-stats">
         {stats.map(stat => (
-          <div key={stat.label} className={`card p-5 flex items-center gap-4 ${stat.cls}`}>
+          <div key={stat.label} className={`card flex items-center gap-3 ${stat.cls}`} style={{ padding: '1rem 1.25rem' }}>
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${stat.iconCls}`}>
               <stat.icon size={20} color={stat.iconColor} />
             </div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <p className="text-2xl font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>{stat.value}</p>
-              <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>{stat.label}</p>
-              <p className="text-xs mt-0.5 text-muted">{stat.sub}</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)', marginTop: '0.125rem' }}>{stat.label}</p>
+              <p className="text-xs text-muted" style={{ marginTop: '0.125rem' }}>{stat.sub}</p>
             </div>
           </div>
         ))}
@@ -113,17 +113,18 @@ export default function DashboardPage() {
                 style={{
                   borderBottom: i < Math.min(projects.length, 8) - 1 ? '1px solid var(--border)' : 'none',
                   color: 'inherit',
+                  gap: '0.75rem',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--bg-elevated)' }}
                 onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent' }}
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-3" style={{ minWidth: 0, flex: 1 }}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent)' }}>
                     {project.name[0].toUpperCase()}
                   </div>
-                  <div className="min-w-0">
+                  <div style={{ minWidth: 0 }}>
                     <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{project.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2" style={{ marginTop: '0.125rem', flexWrap: 'wrap' }}>
                       <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
                         <AlertCircle size={11} /> {project._count.issues} issues
                       </span>
@@ -134,12 +135,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0 ml-3">
+                <div className="flex items-center gap-2 shrink-0">
                   <StatusBadge value={project.status} />
-                  <span className="hidden sm:flex items-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
-                    <Clock size={11} />
-                    {new Date(project.updatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                  </span>
                   <ArrowRight size={15} style={{ color: 'var(--border)' }} />
                 </div>
               </Link>

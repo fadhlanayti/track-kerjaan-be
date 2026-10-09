@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, useRef, use } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send } from 'lucide-react'
+import { Send, ArrowLeft, MessageSquare } from 'lucide-react'
+import Link from 'next/link'
 import { FileUpload } from '@/components/file-upload'
 import { getSocket } from '@/lib/socket-client'
 
@@ -13,6 +14,27 @@ interface Message {
   createdAt: string
 }
 
+function formatTime(date: string) {
+  return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDate(date: string) {
+  const d = new Date(date)
+  const today = new Date()
+  if (d.toDateString() === today.toDateString()) return 'Hari ini'
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (d.toDateString() === yesterday.toDateString()) return 'Kemarin'
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+const senderColors = ['#087CF0', '#7C3AED', '#0E7490', '#F97316', '#15803D', '#DC2626']
+function getColor(name: string) {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h)
+  return senderColors[Math.abs(h) % senderColors.length]
+}
+
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { data: session } = useSession()
@@ -22,7 +44,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Load existing messages
     fetch(`/api/projects/${id}/chat/messages`)
       .then(r => r.json())
       .then(data => {
@@ -31,17 +52,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       })
       .catch(() => setLoading(false))
 
-    // Socket.io for real-time
     const socket = getSocket()
     socket.emit('join:project', { projectId: id })
 
     socket.on('message:new', (message: Message) => {
-      setMessages(prev => [...prev, message])
+      setMessages(prev => prev.some(m => m.id === message.id) ? prev : [...prev, message])
     })
 
-    return () => {
-      socket.off('message:new')
-    }
+    return () => { socket.off('message:new') }
   }, [id])
 
   useEffect(() => {
@@ -63,16 +81,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
     if (res.ok) {
       const message = await res.json()
-      // Emit via socket for real-time broadcast
       const socket = getSocket()
       socket.emit('message:send', { ...message, projectId: id })
-      // Add locally (don't wait for socket echo)
-      setMessages(prev => [...prev, message])
+      setMessages(prev => prev.some(m => m.id === message.id) ? prev : [...prev, message])
     }
   }
 
   function handleFileUpload(url: string) {
-    // Send as message with attachment
     fetch(`/api/projects/${id}/chat/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -80,42 +95,103 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }).then(r => r.json()).then(message => {
       const socket = getSocket()
       socket.emit('message:send', { ...message, projectId: id })
-      setMessages(prev => [...prev, message])
+      setMessages(prev => prev.some(m => m.id === message.id) ? prev : [...prev, message])
     })
   }
 
   if (loading) return <div className="loading-state">Loading...</div>
 
-  return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - 5rem)' }}>
-      <h2 className="text-lg font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Chat</h2>
+  // Group messages by date
+  let lastDate = ''
 
-      {/* Messages */}
-      <div className="card flex-1 overflow-y-auto space-y-3 p-4 mb-3">
-        {messages.map(msg => {
+  return (
+    <div className="flex flex-col" style={{ height: 'calc(100vh - var(--topbar-height) - 2.5rem)' }}>
+
+      {/* Chat header */}
+      <div className="flex items-center gap-3" style={{ marginBottom: '0.75rem' }}>
+        <Link
+          href={`/projects/${id}`}
+          style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+        >
+          <ArrowLeft size={18} />
+        </Link>
+        <div className="flex items-center gap-2">
+          <div className="icon-bg-teal" style={{ width: '2rem', height: '2rem', borderRadius: '0.625rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MessageSquare size={14} color="#0E7490" />
+          </div>
+          <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Project Chat</h2>
+        </div>
+      </div>
+
+      {/* Messages area */}
+      <div className="card flex-1 overflow-y-auto" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+        {messages.length === 0 && (
+          <div className="empty-state" style={{ minHeight: '8rem' }}>
+            <MessageSquare size={28} style={{ color: 'var(--border)', marginBottom: '0.5rem' }} />
+            <p>Belum ada pesan</p>
+          </div>
+        )}
+
+        {messages.map((msg, idx) => {
           const isMe = msg.sender.id === session?.user?.id
+          const msgDate = formatDate(msg.createdAt)
+          const showDate = msgDate !== lastDate
+          lastDate = msgDate
+
+          // Show sender name if prev message is from different person
+          const prevMsg = idx > 0 ? messages[idx - 1] : null
+          const showSender = !isMe && (!prevMsg || prevMsg.sender.id !== msg.sender.id || showDate)
+          const color = getColor(msg.sender.name)
+
           return (
-            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className="max-w-[70%]">
-                {!isMe && (
-                  <p className="text-xs mb-0.5 font-medium" style={{ color: 'var(--accent)' }}>{msg.sender.name}</p>
-                )}
-                <div className={isMe ? 'chat-bubble-mine' : 'chat-bubble-other'}>
-                  {msg.content}
-                  {msg.attachments?.length > 0 && (
-                    <div className="mt-1">
-                      {msg.attachments.map((url, i) => {
-                        if (url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-                          return <img key={i} src={url} alt="" className="max-w-48 rounded mt-1" />
-                        }
-                        return <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline block mt-1" style={{ color: isMe ? 'rgba(255,255,255,0.8)' : 'var(--accent)' }}>File {i+1}</a>
-                      })}
-                    </div>
-                  )}
+            <div key={msg.id}>
+              {showDate && (
+                <div style={{ textAlign: 'center', margin: '1rem 0 0.75rem' }}>
+                  <span className="text-xs font-medium" style={{
+                    color: 'var(--text-muted)',
+                    backgroundColor: 'var(--bg-elevated)',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '1rem',
+                  }}>{msgDate}</span>
                 </div>
-                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
+              )}
+
+              <div style={{
+                display: 'flex',
+                justifyContent: isMe ? 'flex-end' : 'flex-start',
+                marginBottom: '0.25rem',
+                marginTop: showSender ? '0.5rem' : 0,
+              }}>
+                <div style={{ maxWidth: '75%' }}>
+                  {showSender && (
+                    <p className="text-xs font-semibold" style={{ color, marginBottom: '0.25rem' }}>
+                      {msg.sender.name}
+                    </p>
+                  )}
+
+                  <div className={isMe ? 'chat-bubble-mine' : 'chat-bubble-other'}>
+                    {msg.content}
+                    {msg.attachments?.length > 0 && (
+                      <div style={{ marginTop: '0.375rem' }}>
+                        {msg.attachments.map((url, i) => {
+                          if (url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                            return <img key={i} src={url} alt="" style={{ maxWidth: '12rem', borderRadius: '0.5rem', marginTop: '0.25rem', display: 'block' }} />
+                          }
+                          return <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: isMe ? 'rgba(255,255,255,0.8)' : 'var(--accent)', display: 'block', marginTop: '0.25rem' }}>File {i+1}</a>
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-xs" style={{
+                    color: 'var(--text-muted)',
+                    marginTop: '0.125rem',
+                    textAlign: isMe ? 'right' : 'left',
+                    fontSize: '0.625rem',
+                  }}>
+                    {formatTime(msg.createdAt)}
+                  </p>
+                </div>
               </div>
             </div>
           )
@@ -123,20 +199,22 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
+      {/* Input bar */}
       <form onSubmit={sendMessage} className="flex items-center gap-2">
         <FileUpload onUpload={handleFileUpload} />
         <input
           type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder="Type a message..."
-          className="input flex-1"
+          placeholder="Ketik pesan..."
+          className="input"
+          style={{ flex: 1 }}
         />
         <button
           type="submit"
           disabled={!input.trim()}
-          className="btn-primary p-2"
+          className="btn-primary"
+          style={{ padding: '0.625rem' }}
         >
           <Send size={18} />
         </button>
