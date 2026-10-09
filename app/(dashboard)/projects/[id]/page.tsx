@@ -68,7 +68,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Members */}
       <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Members</h3>
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         {project.members.map(m => (
           <div key={m.user.id} className="card p-4 flex items-center gap-3">
             <div

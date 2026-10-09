@@ -7,8 +7,8 @@ import { LayoutDashboard, FolderKanban, Users, UserPlus } from 'lucide-react'
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'DEVELOPER', 'CLIENT'] },
   { href: '/projects', label: 'Projects', icon: FolderKanban, roles: ['ADMIN', 'DEVELOPER', 'CLIENT'] },
-  { href: '/users', label: 'Users', icon: Users, roles: ['ADMIN'] },
-  { href: '/users/invite', label: 'Invite User', icon: UserPlus, roles: ['ADMIN'] },
+  { href: '/users', label: 'Users', icon: Users, roles: ['ADMIN'], exact: true },
+  { href: '/users/invite', label: 'Invite User', icon: UserPlus, roles: ['ADMIN'], exact: true },
 ]
 
 export function Sidebar() {
@@ -16,13 +16,17 @@ export function Sidebar() {
   const { data: session } = useSession()
   const role = session?.user?.role || 'CLIENT'
 
+  function isActive(item: typeof navItems[0]) {
+    if (item.exact) return pathname === item.href
+    return pathname === item.href || pathname.startsWith(item.href + '/')
+  }
+
   return (
     <aside
       className="fixed left-0 top-0 h-full flex flex-col z-30"
       style={{
         width: 'var(--sidebar-width)',
         backgroundColor: '#202524',
-        borderRight: 'none',
       }}
     >
       {/* Brand */}
@@ -42,11 +46,11 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems
           .filter(item => item.roles.includes(role))
           .map(item => {
-            const active = pathname === item.href || pathname.startsWith(item.href + '/')
+            const active = isActive(item)
             return (
               <Link
                 key={item.href}
@@ -70,7 +74,7 @@ export function Sidebar() {
           })}
       </nav>
 
-      {/* User info at bottom */}
+      {/* User info */}
       <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="flex items-center gap-2.5">
           <div
