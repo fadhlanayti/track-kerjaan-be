@@ -85,8 +85,8 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
     fetchIssue()
   }
 
-  if (loading) return <div style={{ color: '#8890b5' }}>Loading...</div>
-  if (!issue) return <div style={{ color: '#dc2626' }}>Issue not found</div>
+  if (loading) return <div className="loading-state">Loading...</div>
+  if (!issue) return <div style={{ color: '#f87171' }}>Issue not found</div>
 
   const isAdmin = session?.user?.role === 'ADMIN'
   const isAssignee = session?.user?.id === issue.assignedTo?.id
@@ -97,17 +97,17 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="max-w-3xl">
       {/* Breadcrumb */}
-      <p className="text-xs mb-4" style={{ color: '#8890b5' }}>
-        <a href={`/projects/${id}`} style={{ color: '#5B65DC' }}>{issue.project.name}</a>
+      <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+        <a href={`/projects/${id}`} style={{ color: 'var(--text-accent)' }}>{issue.project.name}</a>
         {' / '}
-        <a href={`/projects/${id}/issues`} style={{ color: '#5B65DC' }}>Issues</a>
+        <a href={`/projects/${id}/issues`} style={{ color: 'var(--text-accent)' }}>Issues</a>
         {` / ${issue.title}`}
       </p>
 
       {/* Issue header */}
-      <div className="p-5 rounded-lg border mb-4" style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}>
+      <div className="card p-5 mb-4">
         <div className="flex items-start justify-between gap-3 mb-3">
-          <h2 className="text-lg font-bold" style={{ color: '#122056' }}>{issue.title}</h2>
+          <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{issue.title}</h2>
           <div className="flex gap-2">
             <StatusBadge value={issue.priority} />
             <StatusBadge value={issue.status} />
@@ -115,7 +115,7 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
         </div>
 
         {issue.description && (
-          <div className="prose text-sm mb-4" style={{ color: '#122056' }}>
+          <div className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
             {issue.description}
           </div>
         )}
@@ -123,14 +123,14 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
         {issue.attachments.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {issue.attachments.map((url, i) => (
-              <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: '#5B65DC' }}>
+              <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: 'var(--text-accent)' }}>
                 Attachment {i + 1}
               </a>
             ))}
           </div>
         )}
 
-        <div className="flex items-center gap-4 text-xs" style={{ color: '#8890b5' }}>
+        <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--text-muted)' }}>
           <span>By {issue.createdBy.name}</span>
           <span>{new Date(issue.createdAt).toLocaleDateString()}</span>
           {issue.assignedTo && <span>Assigned to {issue.assignedTo.name}</span>}
@@ -138,26 +138,26 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
 
         {/* Controls (admin + assignee) */}
         {(isAdmin || isAssignee) && (
-          <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t" style={{ borderColor: '#E6E7F0' }}>
+          <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
             <div>
-              <label className="block text-xs mb-1 font-medium" style={{ color: '#122056' }}>Status</label>
+              <label className="label">Status</label>
               <select
                 value={issue.status}
                 onChange={e => updateIssue({ status: e.target.value })}
-                className="px-2 py-1 text-xs rounded-md border"
-                style={{ borderColor: '#E6E7F0', color: '#122056' }}
+                className="input text-xs"
+                style={{ width: 'auto' }}
               >
                 {statuses.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
               </select>
             </div>
             {isAdmin && (
               <div>
-                <label className="block text-xs mb-1 font-medium" style={{ color: '#122056' }}>Assign To</label>
+                <label className="label">Assign To</label>
                 <select
                   value={issue.assignedTo?.id || ''}
                   onChange={e => updateIssue({ assignedToId: e.target.value || null })}
-                  className="px-2 py-1 text-xs rounded-md border"
-                  style={{ borderColor: '#E6E7F0', color: '#122056' }}
+                  className="input text-xs"
+                  style={{ width: 'auto' }}
                 >
                   <option value="">Unassigned</option>
                   {developers.map(m => (
@@ -171,10 +171,9 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {/* Activity + Comments timeline */}
-      <h3 className="text-sm font-semibold mb-3" style={{ color: '#122056' }}>Activity</h3>
+      <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Activity</h3>
 
       <div className="space-y-3 mb-6">
-        {/* Merge and sort activities and comments by date */}
         {[
           ...issue.activities.map(a => ({ type: 'activity' as const, data: a, date: a.createdAt })),
           ...issue.comments.map(c => ({ type: 'comment' as const, data: c, date: c.createdAt })),
@@ -188,9 +187,9 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
                 text = `changed status from ${a.metadata.oldStatus} to ${a.metadata.newStatus}`
               }
               return (
-                <div key={`a-${a.id}`} className="flex items-center gap-2 text-xs py-1" style={{ color: '#8890b5' }}>
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#E6E7F0' }} />
-                  <span className="font-medium" style={{ color: '#122056' }}>{a.user.name}</span>
+                <div key={`a-${a.id}`} className="flex items-center gap-2 text-xs py-1" style={{ color: 'var(--text-muted)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--border)' }} />
+                  <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{a.user.name}</span>
                   <span>{text}</span>
                   <span className="ml-auto">{new Date(a.createdAt).toLocaleString()}</span>
                 </div>
@@ -198,22 +197,22 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
             } else {
               const c = item.data as Comment
               return (
-                <div key={`c-${c.id}`} className="p-3 rounded-lg border" style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}>
+                <div key={`c-${c.id}`} className="card p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium"
-                      style={{ backgroundColor: '#5B65DC' }}
+                      className="avatar-sm flex items-center justify-center text-white text-xs font-medium"
+                      style={{ backgroundColor: 'var(--periwinkle)' }}
                     >
                       {c.author.name[0].toUpperCase()}
                     </div>
-                    <span className="text-sm font-medium" style={{ color: '#122056' }}>{c.author.name}</span>
-                    <span className="text-xs ml-auto" style={{ color: '#8890b5' }}>{new Date(c.createdAt).toLocaleString()}</span>
+                    <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{c.author.name}</span>
+                    <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleString()}</span>
                   </div>
-                  <div className="prose text-sm">{c.content}</div>
+                  <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>{c.content}</div>
                   {c.attachments.length > 0 && (
                     <div className="flex gap-2 mt-2">
                       {c.attachments.map((url, i) => (
-                        <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: '#5B65DC' }}>
+                        <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: 'var(--text-accent)' }}>
                           Attachment {i + 1}
                         </a>
                       ))}
@@ -226,26 +225,23 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {/* Comment form */}
-      <form onSubmit={submitComment} className="p-4 rounded-lg border" style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}>
+      <form onSubmit={submitComment} className="card p-4">
         <textarea
           value={commentText}
           onChange={e => setCommentText(e.target.value)}
           placeholder="Write a comment..."
           rows={3}
-          className="w-full px-3 py-2 text-sm rounded-md border outline-none resize-none mb-2"
-          style={{ borderColor: '#E6E7F0', color: '#122056' }}
-          onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-          onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
+          className="input resize-none mb-2"
         />
         {commentAttachments.length > 0 && (
           <div className="flex gap-2 mb-2">
             {commentAttachments.map((url, i) => (
-              <span key={i} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E6E7F0', color: '#122056' }}>
+              <span key={i} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--periwinkle-subtle)', color: 'var(--text-primary)' }}>
                 File {i + 1}
                 <button
                   type="button"
                   onClick={() => setCommentAttachments(prev => prev.filter((_, j) => j !== i))}
-                  className="ml-1" style={{ color: '#dc2626' }}
+                  className="ml-1" style={{ color: '#f87171' }}
                 >
                   x
                 </button>
@@ -258,8 +254,7 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
           <button
             type="submit"
             disabled={submitting || !commentText.trim()}
-            className="px-3 py-1.5 text-sm font-medium text-white rounded-md ml-auto"
-            style={{ backgroundColor: '#5B65DC', opacity: submitting || !commentText.trim() ? 0.5 : 1 }}
+            className="btn-primary ml-auto"
           >
             {submitting ? 'Posting...' : 'Comment'}
           </button>

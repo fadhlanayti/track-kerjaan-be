@@ -2,7 +2,7 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { Plus, Filter } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { StatusBadge } from '@/components/status-badge'
 
 interface Issue {
@@ -59,19 +59,18 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
     setCreating(false)
   }
 
-  if (loading) return <div style={{ color: '#8890b5' }}>Loading...</div>
+  if (loading) return <div className="loading-state">Loading...</div>
 
   const canCreate = session?.user?.role === 'ADMIN' || session?.user?.role === 'CLIENT'
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold" style={{ color: '#122056' }}>Issues</h2>
+      <div className="page-header">
+        <h2 className="page-title">Issues</h2>
         {canCreate && (
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white rounded-md"
-            style={{ backgroundColor: '#5B65DC' }}
+            className="btn-primary"
           >
             <Plus size={16} />
             New Issue
@@ -81,53 +80,41 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
 
       {/* Create form */}
       {showCreateForm && (
-        <form onSubmit={createIssue} className="p-4 rounded-lg border mb-4 space-y-3" style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}>
+        <form onSubmit={createIssue} className="card p-4 mb-4 space-y-3">
           <input
             type="text"
             value={newTitle}
             onChange={e => setNewTitle(e.target.value)}
             placeholder="Issue title"
             required
-            className="w-full px-3 py-2 text-sm rounded-md border outline-none"
-            style={{ borderColor: '#E6E7F0', color: '#122056' }}
-            onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-            onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
+            className="input"
           />
           <textarea
             value={newDesc}
             onChange={e => setNewDesc(e.target.value)}
             placeholder="Description (optional)"
             rows={3}
-            className="w-full px-3 py-2 text-sm rounded-md border outline-none resize-none"
-            style={{ borderColor: '#E6E7F0', color: '#122056' }}
-            onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-            onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
+            className="input resize-none"
           />
           <div className="flex items-center gap-3">
             <select
               value={newPriority}
               onChange={e => setNewPriority(e.target.value)}
-              className="px-2 py-1.5 text-sm rounded-md border outline-none"
-              style={{ borderColor: '#E6E7F0', color: '#122056' }}
+              className="input"
+              style={{ width: 'auto' }}
             >
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
               <option value="HIGH">High</option>
               <option value="URGENT">Urgent</option>
             </select>
-            <button
-              type="submit"
-              disabled={creating}
-              className="px-3 py-1.5 text-sm font-medium text-white rounded-md"
-              style={{ backgroundColor: '#5B65DC', opacity: creating ? 0.7 : 1 }}
-            >
+            <button type="submit" disabled={creating} className="btn-primary">
               {creating ? 'Creating...' : 'Create'}
             </button>
             <button
               type="button"
               onClick={() => setShowCreateForm(false)}
-              className="px-3 py-1.5 text-sm rounded-md border"
-              style={{ borderColor: '#E6E7F0', color: '#8890b5' }}
+              className="btn-secondary"
             >
               Cancel
             </button>
@@ -140,8 +127,8 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
-          className="px-2 py-1.5 text-xs rounded-md border outline-none"
-          style={{ borderColor: '#E6E7F0', color: '#122056' }}
+          className="input text-xs"
+          style={{ width: 'auto' }}
         >
           <option value="">All Status</option>
           <option value="OPEN">Open</option>
@@ -153,8 +140,8 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
         <select
           value={priorityFilter}
           onChange={e => setPriorityFilter(e.target.value)}
-          className="px-2 py-1.5 text-xs rounded-md border outline-none"
-          style={{ borderColor: '#E6E7F0', color: '#122056' }}
+          className="input text-xs"
+          style={{ width: 'auto' }}
         >
           <option value="">All Priority</option>
           <option value="LOW">Low</option>
@@ -170,15 +157,12 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
           <Link
             key={issue.id}
             href={`/projects/${id}/issues/${issue.id}`}
-            className="block p-4 rounded-lg border transition-colors"
-            style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}
-            onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.borderColor = '#5B65DC')}
-            onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.borderColor = '#E6E7F0')}
+            className="card-link p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium" style={{ color: '#122056' }}>{issue.title}</p>
-                <p className="text-xs mt-1" style={{ color: '#8890b5' }}>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{issue.title}</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                   by {issue.createdBy.name}
                   {issue.assignedTo ? ` · assigned to ${issue.assignedTo.name}` : ''}
                   {` · ${issue._count.comments} comments`}
@@ -192,7 +176,7 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
           </Link>
         ))}
         {issues.length === 0 && (
-          <p className="text-sm py-8 text-center" style={{ color: '#8890b5' }}>No issues yet</p>
+          <p className="empty-state">No issues yet</p>
         )}
       </div>
     </div>

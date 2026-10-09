@@ -33,49 +33,45 @@ export default function UsersPage() {
     setUsers(prev => prev.map(u => u.id === user.id ? { ...u, isActive: !u.isActive } : u))
   }
 
-  if (loading) return <div style={{ color: '#8890b5' }}>Loading...</div>
+  if (loading) return <div className="loading-state">Loading...</div>
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-bold" style={{ color: '#122056' }}>Users</h2>
-        <Link
-          href="/users/invite"
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white rounded-md"
-          style={{ backgroundColor: '#5B65DC' }}
-        >
+      <div className="page-header">
+        <h2 className="page-title">Users</h2>
+        <Link href="/users/invite" className="btn-primary">
           <UserPlus size={16} />
           Invite User
         </Link>
       </div>
 
-      <div className="rounded-lg border overflow-hidden" style={{ borderColor: '#E6E7F0' }}>
-        <table className="w-full text-sm">
+      <div className="card overflow-hidden">
+        <table className="table">
           <thead>
-            <tr style={{ backgroundColor: '#E6E7F0' }}>
-              <th className="text-left px-4 py-2.5 font-medium" style={{ color: '#122056' }}>Name</th>
-              <th className="text-left px-4 py-2.5 font-medium" style={{ color: '#122056' }}>Email</th>
-              <th className="text-left px-4 py-2.5 font-medium" style={{ color: '#122056' }}>Role</th>
-              <th className="text-left px-4 py-2.5 font-medium" style={{ color: '#122056' }}>Status</th>
-              <th className="text-right px-4 py-2.5 font-medium" style={{ color: '#122056' }}>Actions</th>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th className="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map(user => (
-              <tr key={user.id} className="border-t" style={{ borderColor: '#E6E7F0', backgroundColor: '#FFFFFF' }}>
-                <td className="px-4 py-3" style={{ color: '#122056' }}>{user.name}</td>
-                <td className="px-4 py-3" style={{ color: '#8890b5' }}>{user.email}</td>
-                <td className="px-4 py-3" style={{ color: '#122056' }}>{user.role}</td>
-                <td className="px-4 py-3">
-                  <span className="text-xs font-medium" style={{ color: user.isActive ? '#16a34a' : '#dc2626' }}>
+              <tr key={user.id}>
+                <td>{user.name}</td>
+                <td style={{ color: 'var(--text-muted)' }}>{user.email}</td>
+                <td>{user.role}</td>
+                <td>
+                  <span className="text-xs font-medium" style={{ color: user.isActive ? '#4ade80' : '#f87171' }}>
                     {user.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="text-right">
                   <button
                     onClick={() => toggleActive(user)}
-                    className="text-xs px-2 py-1 rounded border"
-                    style={{ borderColor: '#E6E7F0', color: user.isActive ? '#dc2626' : '#16a34a' }}
+                    className="btn-secondary text-xs py-1 px-2"
+                    style={{ color: user.isActive ? '#f87171' : '#4ade80' }}
                   >
                     {user.isActive ? 'Deactivate' : 'Activate'}
                   </button>

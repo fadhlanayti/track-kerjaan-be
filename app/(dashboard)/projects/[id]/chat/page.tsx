@@ -84,32 +84,23 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     })
   }
 
-  if (loading) return <div style={{ color: '#8890b5' }}>Loading...</div>
+  if (loading) return <div className="loading-state">Loading...</div>
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 5rem)' }}>
-      <h2 className="text-lg font-bold mb-3" style={{ color: '#122056' }}>Chat</h2>
+      <h2 className="text-lg font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Chat</h2>
 
       {/* Messages */}
-      <div
-        className="flex-1 overflow-y-auto space-y-3 p-4 rounded-lg border mb-3"
-        style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}
-      >
+      <div className="card flex-1 overflow-y-auto space-y-3 p-4 mb-3">
         {messages.map(msg => {
           const isMe = msg.sender.id === session?.user?.id
           return (
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div className="max-w-[70%]">
                 {!isMe && (
-                  <p className="text-xs mb-0.5 font-medium" style={{ color: '#5B65DC' }}>{msg.sender.name}</p>
+                  <p className="text-xs mb-0.5 font-medium" style={{ color: 'var(--text-accent)' }}>{msg.sender.name}</p>
                 )}
-                <div
-                  className="px-3 py-2 rounded-lg text-sm"
-                  style={{
-                    backgroundColor: isMe ? '#5B65DC' : '#E6E7F0',
-                    color: isMe ? '#FFFFFF' : '#122056',
-                  }}
-                >
+                <div className={isMe ? 'chat-bubble-mine' : 'chat-bubble-other'}>
                   {msg.content}
                   {msg.attachments?.length > 0 && (
                     <div className="mt-1">
@@ -117,12 +108,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         if (url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
                           return <img key={i} src={url} alt="" className="max-w-48 rounded mt-1" />
                         }
-                        return <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline block mt-1" style={{ color: isMe ? '#E6E7F0' : '#5B65DC' }}>File {i+1}</a>
+                        return <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline block mt-1" style={{ color: isMe ? 'rgba(255,255,255,0.8)' : 'var(--text-accent)' }}>File {i+1}</a>
                       })}
                     </div>
                   )}
                 </div>
-                <p className="text-[10px] mt-0.5" style={{ color: '#8890b5' }}>
+                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
                   {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
@@ -140,16 +131,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Type a message..."
-          className="flex-1 px-3 py-2 text-sm rounded-md border outline-none"
-          style={{ borderColor: '#E6E7F0', color: '#122056', backgroundColor: '#FFFFFF' }}
-          onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-          onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
+          className="input flex-1"
         />
         <button
           type="submit"
           disabled={!input.trim()}
-          className="p-2 rounded-md text-white"
-          style={{ backgroundColor: '#5B65DC', opacity: input.trim() ? 1 : 0.5 }}
+          className="btn-primary p-2"
         >
           <Send size={18} />
         </button>

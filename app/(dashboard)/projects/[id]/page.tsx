@@ -2,7 +2,7 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { AlertCircle, MessageSquare, Users, Settings } from 'lucide-react'
+import { AlertCircle, MessageSquare } from 'lucide-react'
 import { StatusBadge } from '@/components/status-badge'
 
 interface Project {
@@ -28,63 +28,51 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       .catch(() => setLoading(false))
   }, [id])
 
-  if (loading) return <div style={{ color: '#8890b5' }}>Loading...</div>
-  if (!project) return <div style={{ color: '#dc2626' }}>Project not found</div>
+  if (loading) return <div className="loading-state">Loading...</div>
+  if (!project) return <div style={{ color: '#f87171' }}>Project not found</div>
 
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-lg font-bold" style={{ color: '#122056' }}>{project.name}</h2>
-          {project.description && <p className="text-sm mt-0.5" style={{ color: '#8890b5' }}>{project.description}</p>}
+          <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{project.name}</h2>
+          {project.description && <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{project.description}</p>}
         </div>
         <StatusBadge value={project.status} />
       </div>
 
       {/* Quick links */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-        <Link
-          href={`/projects/${id}/issues`}
-          className="flex items-center gap-3 p-4 rounded-lg border transition-colors"
-          style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}
-          onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.borderColor = '#5B65DC')}
-          onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.borderColor = '#E6E7F0')}
-        >
-          <AlertCircle size={20} style={{ color: '#5B65DC' }} />
+        <Link href={`/projects/${id}/issues`} className="card-link p-4 flex items-center gap-3">
+          <AlertCircle size={20} style={{ color: 'var(--periwinkle)' }} />
           <div>
-            <p className="text-sm font-medium" style={{ color: '#122056' }}>Issues</p>
-            <p className="text-xs" style={{ color: '#8890b5' }}>{project._count.issues} total</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Issues</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{project._count.issues} total</p>
           </div>
         </Link>
-        <Link
-          href={`/projects/${id}/chat`}
-          className="flex items-center gap-3 p-4 rounded-lg border transition-colors"
-          style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}
-          onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.borderColor = '#5B65DC')}
-          onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.borderColor = '#E6E7F0')}
-        >
-          <MessageSquare size={20} style={{ color: '#5B65DC' }} />
+        <Link href={`/projects/${id}/chat`} className="card-link p-4 flex items-center gap-3">
+          <MessageSquare size={20} style={{ color: 'var(--periwinkle)' }} />
           <div>
-            <p className="text-sm font-medium" style={{ color: '#122056' }}>Chat</p>
-            <p className="text-xs" style={{ color: '#8890b5' }}>Real-time messaging</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Chat</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Real-time messaging</p>
           </div>
         </Link>
       </div>
 
       {/* Members */}
-      <h3 className="text-sm font-semibold mb-3" style={{ color: '#122056' }}>Members</h3>
+      <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Members</h3>
       <div className="space-y-1.5">
         {project.members.map(m => (
-          <div key={m.user.id} className="flex items-center gap-3 p-3 rounded-lg border" style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}>
+          <div key={m.user.id} className="card p-3 flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
-              style={{ backgroundColor: m.user.role === 'ADMIN' ? '#122056' : m.user.role === 'DEVELOPER' ? '#5B65DC' : '#8890b5' }}
+              style={{ backgroundColor: m.user.role === 'ADMIN' ? 'var(--periwinkle)' : m.user.role === 'DEVELOPER' ? '#0ea5e9' : 'var(--text-muted)' }}
             >
               {m.user.name[0].toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium" style={{ color: '#122056' }}>{m.user.name}</p>
-              <p className="text-xs" style={{ color: '#8890b5' }}>{m.role}</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{m.user.name}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{m.role}</p>
             </div>
           </div>
         ))}

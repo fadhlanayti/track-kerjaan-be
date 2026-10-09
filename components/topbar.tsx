@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { Bell, LogOut, User } from 'lucide-react'
+import { Bell, LogOut } from 'lucide-react'
 
 interface Notification {
   id: string
@@ -54,30 +54,33 @@ export function Topbar() {
   }
 
   const roleBg: Record<string, string> = {
-    ADMIN: '#122056',
-    DEVELOPER: '#5B65DC',
-    CLIENT: '#8890b5',
+    ADMIN: 'var(--periwinkle)',
+    DEVELOPER: '#0ea5e9',
+    CLIENT: 'var(--text-muted)',
   }
 
   return (
     <header
-      className="fixed top-0 right-0 h-14 flex items-center justify-end gap-3 px-5 bg-white border-b z-20"
-      style={{ left: '15rem', borderColor: '#E6E7F0' }}
+      className="fixed top-0 right-0 flex items-center justify-end gap-3 px-5 z-20"
+      style={{
+        left: 'var(--sidebar-width)',
+        height: 'var(--topbar-height)',
+        backgroundColor: 'var(--bg-sidebar)',
+        borderBottom: '1px solid var(--border)',
+      }}
     >
       {/* Notifications */}
       <div className="relative" ref={notifRef}>
         <button
           onClick={() => setShowNotifs(!showNotifs)}
-          className="relative p-2 rounded-md transition-colors"
-          style={{ color: '#122056' }}
-          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#E6E7F0')}
-          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          className="nav-item p-2"
+          style={{ gap: 0 }}
         >
-          <Bell size={20} />
+          <Bell size={19} />
           {unreadCount > 0 && (
             <span
               className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white rounded-full"
-              style={{ backgroundColor: '#5B65DC' }}
+              style={{ backgroundColor: 'var(--periwinkle)' }}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
@@ -85,25 +88,27 @@ export function Topbar() {
         </button>
 
         {showNotifs && (
-          <div className="absolute right-0 top-12 w-80 max-h-96 overflow-y-auto bg-white rounded-lg shadow-lg border" style={{ borderColor: '#E6E7F0' }}>
-            <div className="p-3 border-b font-semibold text-sm" style={{ borderColor: '#E6E7F0', color: '#122056' }}>
+          <div className="dropdown" style={{ width: '20rem', maxHeight: '24rem', overflowY: 'auto' }}>
+            <div className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
               Notifications
             </div>
             {notifications.length === 0 ? (
-              <div className="p-4 text-sm text-center" style={{ color: '#8890b5' }}>No notifications</div>
+              <div className="p-4 text-sm text-center" style={{ color: 'var(--text-muted)' }}>No notifications</div>
             ) : (
               notifications.slice(0, 20).map(n => (
                 <div
                   key={n.id}
-                  className="p-3 border-b cursor-pointer transition-colors"
+                  className="px-3 py-2.5 cursor-pointer transition-colors"
                   style={{
-                    borderColor: '#E6E7F0',
-                    backgroundColor: n.read ? 'transparent' : '#f5f5ff',
+                    borderBottom: '1px solid var(--border)',
+                    backgroundColor: n.read ? 'transparent' : 'var(--periwinkle-subtle)',
                   }}
                   onClick={() => markRead(n.id)}
+                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = 'var(--bg-card-hover)' }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = n.read ? 'transparent' : 'var(--periwinkle-subtle)' }}
                 >
-                  <p className="text-sm font-medium" style={{ color: '#122056' }}>{n.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color: '#8890b5' }}>{n.message}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{n.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{n.message}</p>
                 </div>
               ))
             )}
@@ -115,9 +120,7 @@ export function Topbar() {
       <div className="relative" ref={menuRef}>
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="flex items-center gap-2 p-1.5 rounded-md transition-colors"
-          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#E6E7F0')}
-          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          className="nav-item py-1.5 px-2"
         >
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
@@ -125,23 +128,20 @@ export function Topbar() {
           >
             {(session?.user?.name || '?')[0].toUpperCase()}
           </div>
-          <span className="text-sm font-medium hidden sm:block" style={{ color: '#122056' }}>
+          <span className="text-sm font-medium hidden sm:block" style={{ color: 'var(--text-primary)' }}>
             {session?.user?.name}
           </span>
         </button>
 
         {showMenu && (
-          <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border" style={{ borderColor: '#E6E7F0' }}>
-            <div className="p-3 border-b" style={{ borderColor: '#E6E7F0' }}>
-              <p className="text-sm font-medium" style={{ color: '#122056' }}>{session?.user?.name}</p>
-              <p className="text-xs" style={{ color: '#8890b5' }}>{session?.user?.role}</p>
+          <div className="dropdown" style={{ width: '12rem' }}>
+            <div className="px-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{session?.user?.name}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{session?.user?.role}</p>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="w-full flex items-center gap-2 p-3 text-sm text-left transition-colors"
-              style={{ color: '#122056' }}
-              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#E6E7F0')}
-              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              className="nav-item w-full rounded-none px-3 py-2.5"
             >
               <LogOut size={16} />
               Sign Out

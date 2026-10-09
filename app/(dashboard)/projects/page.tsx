@@ -27,18 +27,14 @@ export default function ProjectsPage() {
       .catch(() => setLoading(false))
   }, [])
 
-  if (loading) return <div style={{ color: '#8890b5' }}>Loading...</div>
+  if (loading) return <div className="loading-state">Loading...</div>
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-bold" style={{ color: '#122056' }}>Projects</h2>
+      <div className="page-header">
+        <h2 className="page-title">Projects</h2>
         {session?.user?.role === 'ADMIN' && (
-          <Link
-            href="/projects/new"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white rounded-md"
-            style={{ backgroundColor: '#5B65DC' }}
-          >
+          <Link href="/projects/new" className="btn-primary">
             <Plus size={16} />
             New Project
           </Link>
@@ -50,18 +46,15 @@ export default function ProjectsPage() {
           <Link
             key={project.id}
             href={`/projects/${project.id}`}
-            className="block p-4 rounded-lg border transition-colors"
-            style={{ backgroundColor: '#FFFFFF', borderColor: '#E6E7F0' }}
-            onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.borderColor = '#5B65DC')}
-            onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.borderColor = '#E6E7F0')}
+            className="card-link p-4"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium" style={{ color: '#122056' }}>{project.name}</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{project.name}</p>
                 {project.description && (
-                  <p className="text-xs mt-0.5" style={{ color: '#8890b5' }}>{project.description}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{project.description}</p>
                 )}
-                <p className="text-xs mt-1" style={{ color: '#8890b5' }}>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                   {project._count.issues} issues · {project.members.length} members
                 </p>
               </div>
@@ -70,7 +63,7 @@ export default function ProjectsPage() {
           </Link>
         ))}
         {projects.length === 0 && (
-          <p className="text-sm py-8 text-center" style={{ color: '#8890b5' }}>No projects yet</p>
+          <p className="empty-state">No projects yet</p>
         )}
       </div>
     </div>

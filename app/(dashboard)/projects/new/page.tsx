@@ -52,76 +52,71 @@ export default function NewProjectPage() {
 
   return (
     <div className="max-w-lg">
-      <h2 className="text-lg font-bold mb-5" style={{ color: '#122056' }}>New Project</h2>
+      <h2 className="text-lg font-bold mb-5" style={{ color: 'var(--text-primary)' }}>New Project</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: '#122056' }}>Project Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-            className="w-full px-3 py-2 text-sm rounded-md border outline-none"
-            style={{ borderColor: '#E6E7F0', color: '#122056' }}
-            onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-            onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: '#122056' }}>Description</label>
-          <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            rows={3}
-            className="w-full px-3 py-2 text-sm rounded-md border outline-none resize-none"
-            style={{ borderColor: '#E6E7F0', color: '#122056' }}
-            onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-            onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
-          />
-        </div>
-
-        {users.length > 0 && (
+      <div className="card p-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#122056' }}>Add Members</label>
-            <div className="space-y-1.5">
-              {users.map(user => {
-                const selected = selectedMembers.some(m => m.userId === user.id)
-                return (
-                  <label
-                    key={user.id}
-                    className="flex items-center gap-2 p-2 rounded-md border cursor-pointer text-sm"
-                    style={{
-                      borderColor: selected ? '#5B65DC' : '#E6E7F0',
-                      backgroundColor: selected ? '#f5f5ff' : '#FFFFFF',
-                      color: '#122056',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() => toggleMember(user.id, user.role === 'DEVELOPER' ? 'DEVELOPER' : 'CLIENT')}
-                      className="accent-[#5B65DC]"
-                    />
-                    <span>{user.name}</span>
-                    <span className="text-xs ml-auto" style={{ color: '#8890b5' }}>{user.role}</span>
-                  </label>
-                )
-              })}
-            </div>
+            <label className="label">Project Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              required
+              className="input"
+            />
           </div>
-        )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="px-4 py-2 text-sm font-medium text-white rounded-md"
-          style={{ backgroundColor: '#5B65DC', opacity: submitting ? 0.7 : 1 }}
-        >
-          {submitting ? 'Creating...' : 'Create Project'}
-        </button>
-      </form>
+          <div>
+            <label className="label">Description</label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rows={3}
+              className="input resize-none"
+            />
+          </div>
+
+          {users.length > 0 && (
+            <div>
+              <label className="label">Add Members</label>
+              <div className="space-y-1.5">
+                {users.map(user => {
+                  const selected = selectedMembers.some(m => m.userId === user.id)
+                  return (
+                    <label
+                      key={user.id}
+                      className="flex items-center gap-2 p-2 rounded-md border cursor-pointer text-sm"
+                      style={{
+                        borderColor: selected ? 'var(--border-active)' : 'var(--border)',
+                        backgroundColor: selected ? 'var(--periwinkle-subtle)' : 'var(--bg-input)',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => toggleMember(user.id, user.role === 'DEVELOPER' ? 'DEVELOPER' : 'CLIENT')}
+                        className="accent-[#5B65DC]"
+                      />
+                      <span>{user.name}</span>
+                      <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>{user.role}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="btn-primary"
+          >
+            {submitting ? 'Creating...' : 'Create Project'}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

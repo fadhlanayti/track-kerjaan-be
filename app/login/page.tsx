@@ -30,46 +30,39 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FAFAFA' }}>
-      <div className="w-full max-w-sm" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E6E7F0', borderRadius: '12px', padding: '2rem' }}>
-        <h1 className="text-xl font-bold mb-1" style={{ color: '#122056' }}>WeballCreative</h1>
-        <p className="text-sm mb-6" style={{ color: '#8890b5' }}>Sign in to Project Tracker</p>
+    <div className="auth-page">
+      <div className="auth-card w-full max-w-sm p-8">
+        <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>WeballCreative</h1>
+        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Sign in to Project Tracker</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#122056' }}>Email</label>
+            <label className="label">Email</label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-colors"
-              style={{ borderColor: '#E6E7F0', backgroundColor: '#FFFFFF', color: '#122056' }}
-              onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-              onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
+              className="input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#122056' }}>Password</label>
+            <label className="label">Password</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none transition-colors"
-              style={{ borderColor: '#E6E7F0', backgroundColor: '#FFFFFF', color: '#122056' }}
-              onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-              onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
+              className="input"
             />
           </div>
 
-          {error && <p className="text-sm" style={{ color: '#dc2626' }}>{error}</p>}
+          {error && <p className="error-text">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 text-sm font-medium text-white rounded-md transition-opacity"
-            style={{ backgroundColor: '#5B65DC', opacity: loading ? 0.7 : 1 }}
+            className="btn-primary w-full justify-center py-2"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>

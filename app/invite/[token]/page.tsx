@@ -49,51 +49,45 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
     }
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FAFAFA', color: '#8890b5' }}>Loading...</div>
-  if (error) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FAFAFA', color: '#dc2626' }}>{error}</div>
+  if (loading) return <div className="loading-state min-h-screen">Loading...</div>
+  if (error) return <div className="min-h-screen flex items-center justify-center" style={{ color: '#f87171' }}>{error}</div>
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FAFAFA' }}>
-      <div className="w-full max-w-sm" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E6E7F0', borderRadius: '12px', padding: '2rem' }}>
-        <h1 className="text-xl font-bold mb-1" style={{ color: '#122056' }}>Join WeballCreative</h1>
-        <p className="text-sm mb-6" style={{ color: '#8890b5' }}>Set up your account</p>
+    <div className="auth-page">
+      <div className="auth-card w-full max-w-sm p-8">
+        <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Join WeballCreative</h1>
+        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Set up your account</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#122056' }}>Email</label>
+            <label className="label">Email</label>
             <input
               type="email"
               value={invite?.email || ''}
               disabled
-              className="w-full px-3 py-2 text-sm rounded-md border"
-              style={{ borderColor: '#E6E7F0', backgroundColor: '#FAFAFA', color: '#8890b5' }}
+              className="input"
+              style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-muted)' }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#122056' }}>Name</label>
+            <label className="label">Name</label>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none"
-              style={{ borderColor: '#E6E7F0', color: '#122056' }}
-              onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-              onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
+              className="input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#122056' }}>Password</label>
+            <label className="label">Password</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none"
-              style={{ borderColor: '#E6E7F0', color: '#122056' }}
-              onFocus={e => (e.target.style.borderColor = '#5B65DC')}
-              onBlur={e => (e.target.style.borderColor = '#E6E7F0')}
+              className="input"
               placeholder="Min 6 characters"
             />
           </div>
@@ -101,8 +95,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2 text-sm font-medium text-white rounded-md"
-            style={{ backgroundColor: '#5B65DC', opacity: submitting ? 0.7 : 1 }}
+            className="btn-primary w-full justify-center py-2"
           >
             {submitting ? 'Setting up...' : 'Set Password & Join'}
           </button>

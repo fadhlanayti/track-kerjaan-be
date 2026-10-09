@@ -2,12 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import {
-  LayoutDashboard,
-  FolderKanban,
-  Users,
-  UserPlus,
-} from 'lucide-react'
+import { LayoutDashboard, FolderKanban, Users, UserPlus } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'DEVELOPER', 'CLIENT'] },
@@ -22,15 +17,18 @@ export function Sidebar() {
   const role = session?.user?.role || 'CLIENT'
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-60 bg-white border-r flex flex-col z-30" style={{ borderColor: '#E6E7F0' }}>
-      <div className="p-5 border-b" style={{ borderColor: '#E6E7F0' }}>
-        <h1 className="text-lg font-bold tracking-tight" style={{ color: '#122056' }}>
+    <aside
+      className="fixed left-0 top-0 h-full flex flex-col z-30"
+      style={{ width: 'var(--sidebar-width)', backgroundColor: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)' }}
+    >
+      <div className="p-5" style={{ borderBottom: '1px solid var(--border)' }}>
+        <h1 className="text-base font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
           WeballCreative
         </h1>
-        <p className="text-xs mt-0.5" style={{ color: '#5B65DC' }}>Project Tracker</p>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--text-accent)' }}>Project Tracker</p>
       </div>
 
-      <nav className="flex-1 py-3 px-3 space-y-1">
+      <nav className="flex-1 py-3 px-3 space-y-0.5">
         {navItems
           .filter(item => item.roles.includes(role))
           .map(item => {
@@ -39,17 +37,7 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                style={{
-                  color: active ? '#FFFFFF' : '#122056',
-                  backgroundColor: active ? '#5B65DC' : 'transparent',
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                  if (!active) e.currentTarget.style.backgroundColor = '#E6E7F0'
-                }}
-                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                  if (!active) e.currentTarget.style.backgroundColor = 'transparent'
-                }}
+                className={`nav-item ${active ? 'active' : ''}`}
               >
                 <item.icon size={18} />
                 {item.label}
@@ -58,7 +46,7 @@ export function Sidebar() {
           })}
       </nav>
 
-      <div className="p-3 border-t text-xs" style={{ borderColor: '#E6E7F0', color: '#8890b5' }}>
+      <div className="px-4 py-3 text-xs" style={{ borderTop: '1px solid var(--border)', color: 'var(--text-muted)' }}>
         v1.0.0
       </div>
     </aside>
