@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -105,12 +105,12 @@ model Issue {
   id           String        @id @default(cuid())
   projectId    String
   title        String
-  description  String?
+  description  String?       @db.Text
   status       IssueStatus   @default(OPEN)
   priority     IssuePriority @default(MEDIUM)
   createdById  String
   assignedToId String?
-  attachments  String[]
+  attachments  Json          @default("[]")
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -125,8 +125,8 @@ model IssueComment {
   id          String   @id @default(cuid())
   issueId     String
   authorId    String
-  content     String
-  attachments String[]
+  content     String   @db.Text
+  attachments Json     @default("[]")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -160,8 +160,8 @@ model ChatMessage {
   id          String   @id @default(cuid())
   channelId   String
   senderId    String
-  content     String
-  attachments String[]
+  content     String   @db.Text
+  attachments Json     @default("[]")
   createdAt   DateTime @default(now())
 
   channel ChatChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
@@ -173,7 +173,7 @@ model Notification {
   userId        String
   type          String
   title         String
-  message       String
+  message       String   @db.Text
   referenceId   String?
   referenceType String?
   read          Boolean  @default(false)
