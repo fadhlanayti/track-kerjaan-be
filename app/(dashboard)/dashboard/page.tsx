@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const activeProjects = projects.filter(p => p.status === 'ACTIVE').length
   const totalIssues = projects.reduce((sum, p) => sum + p._count.issues, 0)
   const isAdmin = session?.user?.role === 'ADMIN'
+  const uniqueMembers = [...new Set(projects.flatMap(p => p.members.map(m => m.user.name)))].length
 
   const stats = [
     {
@@ -42,32 +43,28 @@ export default function DashboardPage() {
       value: projects.length,
       sub: `${activeProjects} active`,
       icon: FolderKanban,
-      color: '#087CF0',
-      iconBg: 'rgba(8,124,240,0.10)',
+      gradient: 'linear-gradient(135deg, #087CF0 0%, #0559B3 100%)',
     },
     {
       label: 'Open Issues',
       value: totalIssues,
       sub: 'across all projects',
       icon: AlertCircle,
-      color: '#FFAD78',
-      iconBg: 'rgba(255,173,120,0.14)',
+      gradient: 'linear-gradient(135deg, #FFAD78 0%, #F97316 100%)',
     },
     {
       label: 'Team Members',
-      value: [...new Set(projects.flatMap(p => p.members.map(m => m.user.name)))].length,
+      value: uniqueMembers,
       sub: 'across projects',
       icon: Users,
-      color: '#A98AF5',
-      iconBg: 'rgba(169,138,245,0.12)',
+      gradient: 'linear-gradient(135deg, #A98AF5 0%, #7C3AED 100%)',
     },
     {
       label: 'Completed',
       value: projects.filter(p => p.status === 'COMPLETED').length,
       sub: 'projects done',
       icon: CheckCircle2,
-      color: '#9BD83B',
-      iconBg: 'rgba(155,216,59,0.12)',
+      gradient: 'linear-gradient(135deg, #9BD83B 0%, #4D7C0F 100%)',
     },
   ]
 
@@ -79,7 +76,6 @@ export default function DashboardPage() {
         className="flex items-center justify-between p-6 mb-6 rounded-2xl"
         style={{
           background: 'linear-gradient(135deg, #202524 0%, #2d3830 100%)',
-          color: 'white',
         }}
       >
         <div className="flex items-center gap-4">
@@ -90,15 +86,15 @@ export default function DashboardPage() {
             {(session?.user?.name || 'U')[0].toUpperCase()}
           </div>
           <div>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>Welcome back</p>
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Welcome back</p>
             <h1 className="text-xl font-bold text-white">{session?.user?.name}</h1>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
               {session?.user?.role} · WeballCreative
             </p>
           </div>
         </div>
         <div className="text-right hidden sm:block">
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
             {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
           {isAdmin && (
@@ -114,26 +110,26 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+      {/* Stats grid — colored cards */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
         {stats.map(stat => (
-          <div key={stat.label} className="stat-card flex items-center gap-4">
+          <div
+            key={stat.label}
+            className="rounded-2xl p-5 flex items-center gap-4"
+            style={{ background: stat.gradient, boxShadow: '0 4px 16px rgba(0,0,0,0.10)' }}
+          >
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: stat.iconBg }}
+              style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
             >
-              <stat.icon size={22} style={{ color: stat.color }} />
+              <stat.icon size={22} color="white" />
             </div>
             <div>
-              <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)', lineHeight: 1.1 }}>
+              <p className="text-3xl font-bold text-white" style={{ lineHeight: 1.1 }}>
                 {stat.value}
               </p>
-              <p className="text-sm font-medium mt-0.5" style={{ color: 'var(--text-primary)' }}>
-                {stat.label}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                {stat.sub}
-              </p>
+              <p className="text-sm font-semibold text-white mt-0.5">{stat.label}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{stat.sub}</p>
             </div>
           </div>
         ))}
@@ -141,7 +137,10 @@ export default function DashboardPage() {
 
       {/* Recent Projects */}
       <div className="card overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: '1px solid var(--border)' }}
+        >
           <div className="flex items-center gap-2">
             <TrendingUp size={16} style={{ color: 'var(--accent)' }} />
             <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -173,20 +172,19 @@ export default function DashboardPage() {
               <Link
                 key={project.id}
                 href={`/projects/${project.id}`}
-                className="flex items-center justify-between px-5 py-3.5 transition-colors"
+                className="flex items-center justify-between px-5 py-4 transition-colors"
                 style={{
                   borderBottom: i < Math.min(projects.length, 8) - 1 ? '1px solid var(--border)' : 'none',
                   textDecoration: 'none',
                   color: 'inherit',
                 }}
                 onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                  e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'
+                  e.currentTarget.style.backgroundColor = '#F8F8F6'
                 }}
                 onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                   e.currentTarget.style.backgroundColor = 'transparent'
                 }}
               >
-                {/* Left: icon + info */}
                 <div className="flex items-center gap-3 min-w-0">
                   <div
                     className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
@@ -203,7 +201,7 @@ export default function DashboardPage() {
                         <AlertCircle size={11} />
                         {project._count.issues} issues
                       </span>
-                      <span className="text-xs" style={{ color: 'var(--border)' }}>·</span>
+                      <span style={{ color: 'var(--border)' }}>·</span>
                       <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
                         <Users size={11} />
                         {project.members.length} members
@@ -211,8 +209,6 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-
-                {/* Right: status + time */}
                 <div className="flex items-center gap-3 flex-shrink-0 ml-3">
                   <StatusBadge value={project.status} />
                   <span className="flex items-center gap-1 text-xs hidden sm:flex" style={{ color: 'var(--text-muted)' }}>
