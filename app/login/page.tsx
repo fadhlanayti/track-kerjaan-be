@@ -31,9 +31,18 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card w-full max-w-sm p-8">
-        <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>WeballCreative</h1>
-        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Sign in to Project Tracker</p>
+      <div className="auth-card w-full">
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4"
+            style={{ backgroundColor: 'var(--accent)' }}
+          >
+            W
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>WeballCreative</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Project Tracker</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -62,7 +71,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full justify-center py-2"
+            className="btn-primary w-full justify-center py-2.5"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>

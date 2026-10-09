@@ -84,9 +84,12 @@ export default function InviteUserPage() {
       </div>
 
       {inviteUrl && (
-        <div className="card mt-4 p-4">
+        <div
+          className="mt-4 p-4 rounded-xl border"
+          style={{ backgroundColor: '#FFF7ED', borderColor: 'rgba(249,115,22,0.2)' }}
+        >
           <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Invite Link</p>
-          <p className="text-xs break-all" style={{ color: 'var(--text-accent)' }}>{inviteUrl}</p>
+          <p className="text-xs break-all" style={{ color: 'var(--accent)' }}>{inviteUrl}</p>
           <button
             onClick={() => { navigator.clipboard.writeText(inviteUrl) }}
             className="btn-secondary mt-2 text-xs py-1 px-2"

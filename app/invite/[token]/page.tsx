@@ -50,13 +50,22 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
   }
 
   if (loading) return <div className="loading-state min-h-screen">Loading...</div>
-  if (error) return <div className="min-h-screen flex items-center justify-center" style={{ color: '#f87171' }}>{error}</div>
+  if (error) return <div className="min-h-screen flex items-center justify-center" style={{ color: 'var(--red)' }}>{error}</div>
 
   return (
     <div className="auth-page">
-      <div className="auth-card w-full max-w-sm p-8">
-        <h1 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Join WeballCreative</h1>
-        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Set up your account</p>
+      <div className="auth-card w-full">
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4"
+            style={{ backgroundColor: 'var(--accent)' }}
+          >
+            W
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Join WeballCreative</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Set up your account</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -95,7 +104,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
           <button
             type="submit"
             disabled={submitting}
-            className="btn-primary w-full justify-center py-2"
+            className="btn-primary w-full justify-center py-2.5"
           >
             {submitting ? 'Setting up...' : 'Set Password & Join'}
           </button>

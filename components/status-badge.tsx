@@ -1,27 +1,27 @@
 const statusColors: Record<string, string> = {
-  OPEN: '#818cf8',
-  IN_REVIEW: '#fbbf24',
-  IN_PROGRESS: '#60a5fa',
-  RESOLVED: '#4ade80',
-  CLOSED: '#64748b',
+  OPEN: '#2563EB',
+  IN_REVIEW: '#D97706',
+  IN_PROGRESS: '#F97316',
+  RESOLVED: '#16A34A',
+  CLOSED: '#9CA3AF',
   // priorities
-  LOW: '#64748b',
-  MEDIUM: '#818cf8',
-  HIGH: '#fb923c',
-  URGENT: '#f87171',
+  LOW: '#9CA3AF',
+  MEDIUM: '#2563EB',
+  HIGH: '#F97316',
+  URGENT: '#DC2626',
   // project status
-  ACTIVE: '#4ade80',
-  ON_HOLD: '#fbbf24',
-  COMPLETED: '#818cf8',
-  ARCHIVED: '#64748b',
+  ACTIVE: '#16A34A',
+  ON_HOLD: '#D97706',
+  COMPLETED: '#2563EB',
+  ARCHIVED: '#9CA3AF',
 }
 
 export function StatusBadge({ value }: { value: string }) {
-  const color = statusColors[value] || '#64748b'
+  const color = statusColors[value] || '#9CA3AF'
   return (
     <span
       className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded"
-      style={{ color, backgroundColor: `rgba(${hexToRgb(color)}, 0.15)`, borderLeft: `3px solid ${color}` }}
+      style={{ color, backgroundColor: `rgba(${hexToRgb(color)}, 0.1)`, borderLeft: `3px solid ${color}` }}
     >
       {value.replace(/_/g, ' ')}
     </span>

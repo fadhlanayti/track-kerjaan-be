@@ -89,7 +89,7 @@ export default function NewProjectPage() {
                       className="flex items-center gap-2 p-2 rounded-md border cursor-pointer text-sm"
                       style={{
                         borderColor: selected ? 'var(--border-active)' : 'var(--border)',
-                        backgroundColor: selected ? 'var(--periwinkle-subtle)' : 'var(--bg-input)',
+                        backgroundColor: selected ? 'var(--accent-subtle)' : 'var(--bg-input)',
                         color: 'var(--text-primary)',
                       }}
                     >
@@ -97,7 +97,7 @@ export default function NewProjectPage() {
                         type="checkbox"
                         checked={selected}
                         onChange={() => toggleMember(user.id, user.role === 'DEVELOPER' ? 'DEVELOPER' : 'CLIENT')}
-                        className="accent-[#5B65DC]"
+                        className="accent-[var(--accent)]"
                       />
                       <span>{user.name}</span>
                       <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>{user.role}</span>

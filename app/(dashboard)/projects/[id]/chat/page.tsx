@@ -98,7 +98,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div className="max-w-[70%]">
                 {!isMe && (
-                  <p className="text-xs mb-0.5 font-medium" style={{ color: 'var(--text-accent)' }}>{msg.sender.name}</p>
+                  <p className="text-xs mb-0.5 font-medium" style={{ color: 'var(--accent)' }}>{msg.sender.name}</p>
                 )}
                 <div className={isMe ? 'chat-bubble-mine' : 'chat-bubble-other'}>
                   {msg.content}
@@ -108,7 +108,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         if (url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
                           return <img key={i} src={url} alt="" className="max-w-48 rounded mt-1" />
                         }
-                        return <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline block mt-1" style={{ color: isMe ? 'rgba(255,255,255,0.8)' : 'var(--text-accent)' }}>File {i+1}</a>
+                        return <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline block mt-1" style={{ color: isMe ? 'rgba(255,255,255,0.8)' : 'var(--accent)' }}>File {i+1}</a>
                       })}
                     </div>
                   )}

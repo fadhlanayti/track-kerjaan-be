@@ -63,7 +63,7 @@ export default function UsersPage() {
                 <td style={{ color: 'var(--text-muted)' }}>{user.email}</td>
                 <td>{user.role}</td>
                 <td>
-                  <span className="text-xs font-medium" style={{ color: user.isActive ? '#4ade80' : '#f87171' }}>
+                  <span className="text-xs font-medium" style={{ color: user.isActive ? 'var(--green)' : 'var(--red)' }}>
                     {user.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </td>
@@ -71,7 +71,7 @@ export default function UsersPage() {
                   <button
                     onClick={() => toggleActive(user)}
                     className="btn-secondary text-xs py-1 px-2"
-                    style={{ color: user.isActive ? '#f87171' : '#4ade80' }}
+                    style={{ color: user.isActive ? 'var(--red)' : 'var(--green)' }}
                   >
                     {user.isActive ? 'Deactivate' : 'Activate'}
                   </button>

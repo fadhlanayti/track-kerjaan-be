@@ -29,7 +29,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   }, [id])
 
   if (loading) return <div className="loading-state">Loading...</div>
-  if (!project) return <div style={{ color: '#f87171' }}>Project not found</div>
+  if (!project) return <div style={{ color: 'var(--red)' }}>Project not found</div>
+
+  const avatarBg = (role: string) =>
+    role === 'ADMIN' ? 'var(--accent)' : role === 'DEVELOPER' ? 'var(--blue)' : 'var(--text-muted)'
 
   return (
     <div>
@@ -44,14 +47,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       {/* Quick links */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
         <Link href={`/projects/${id}/issues`} className="card-link p-4 flex items-center gap-3">
-          <AlertCircle size={20} style={{ color: 'var(--periwinkle)' }} />
+          <AlertCircle size={20} style={{ color: 'var(--accent)' }} />
           <div>
             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Issues</p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{project._count.issues} total</p>
           </div>
         </Link>
         <Link href={`/projects/${id}/chat`} className="card-link p-4 flex items-center gap-3">
-          <MessageSquare size={20} style={{ color: 'var(--periwinkle)' }} />
+          <MessageSquare size={20} style={{ color: 'var(--accent)' }} />
           <div>
             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Chat</p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Real-time messaging</p>
@@ -66,7 +69,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <div key={m.user.id} className="card p-3 flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
-              style={{ backgroundColor: m.user.role === 'ADMIN' ? 'var(--periwinkle)' : m.user.role === 'DEVELOPER' ? '#0ea5e9' : 'var(--text-muted)' }}
+              style={{ backgroundColor: avatarBg(m.user.role) }}
             >
               {m.user.name[0].toUpperCase()}
             </div>

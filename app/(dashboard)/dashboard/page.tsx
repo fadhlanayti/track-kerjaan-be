@@ -28,20 +28,22 @@ export default function DashboardPage() {
   const activeProjects = projects.filter(p => p.status === 'ACTIVE').length
   const totalIssues = projects.reduce((sum, p) => sum + p._count.issues, 0)
 
+  const stats = [
+    { label: 'Active Projects', value: activeProjects, icon: FolderKanban, color: 'var(--accent)', iconBg: 'var(--accent-subtle)' },
+    { label: 'Total Issues', value: totalIssues, icon: AlertCircle, color: 'var(--blue)', iconBg: 'rgba(37,99,235,0.08)' },
+    { label: 'Total Projects', value: projects.length, icon: CheckCircle, color: 'var(--green)', iconBg: 'rgba(22,163,74,0.08)' },
+  ]
+
   return (
     <div>
       <h2 className="text-lg font-bold mb-5" style={{ color: 'var(--text-primary)' }}>Dashboard</h2>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {[
-          { label: 'Active Projects', value: activeProjects, icon: FolderKanban, color: 'var(--periwinkle)' },
-          { label: 'Total Issues', value: totalIssues, icon: AlertCircle, color: '#fb923c' },
-          { label: 'Total Projects', value: projects.length, icon: CheckCircle, color: '#4ade80' },
-        ].map(stat => (
+        {stats.map(stat => (
           <div key={stat.label} className="stat-card">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md" style={{ backgroundColor: 'var(--periwinkle-subtle)' }}>
+              <div className="p-2 rounded-md" style={{ backgroundColor: stat.iconBg }}>
                 <stat.icon size={20} style={{ color: stat.color }} />
               </div>
               <div>

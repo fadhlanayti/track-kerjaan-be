@@ -25,7 +25,7 @@ export function Sidebar() {
         <h1 className="text-base font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
           WeballCreative
         </h1>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--text-accent)' }}>Project Tracker</p>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--accent)' }}>Project Tracker</p>
       </div>
 
       <nav className="flex-1 py-3 px-3 space-y-0.5">

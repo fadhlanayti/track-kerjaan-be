@@ -86,7 +86,7 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   if (loading) return <div className="loading-state">Loading...</div>
-  if (!issue) return <div style={{ color: '#f87171' }}>Issue not found</div>
+  if (!issue) return <div style={{ color: 'var(--red)' }}>Issue not found</div>
 
   const isAdmin = session?.user?.role === 'ADMIN'
   const isAssignee = session?.user?.id === issue.assignedTo?.id
@@ -98,9 +98,9 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
     <div className="max-w-3xl">
       {/* Breadcrumb */}
       <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-        <a href={`/projects/${id}`} style={{ color: 'var(--text-accent)' }}>{issue.project.name}</a>
+        <a href={`/projects/${id}`} style={{ color: 'var(--accent)' }}>{issue.project.name}</a>
         {' / '}
-        <a href={`/projects/${id}/issues`} style={{ color: 'var(--text-accent)' }}>Issues</a>
+        <a href={`/projects/${id}/issues`} style={{ color: 'var(--accent)' }}>Issues</a>
         {` / ${issue.title}`}
       </p>
 
@@ -123,7 +123,7 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
         {issue.attachments.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {issue.attachments.map((url, i) => (
-              <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: 'var(--text-accent)' }}>
+              <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: 'var(--accent)' }}>
                 Attachment {i + 1}
               </a>
             ))}
@@ -201,7 +201,7 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
                   <div className="flex items-center gap-2 mb-2">
                     <div
                       className="avatar-sm flex items-center justify-center text-white text-xs font-medium"
-                      style={{ backgroundColor: 'var(--periwinkle)' }}
+                      style={{ backgroundColor: 'var(--accent)' }}
                     >
                       {c.author.name[0].toUpperCase()}
                     </div>
@@ -212,7 +212,7 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
                   {c.attachments.length > 0 && (
                     <div className="flex gap-2 mt-2">
                       {c.attachments.map((url, i) => (
-                        <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: 'var(--text-accent)' }}>
+                        <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: 'var(--accent)' }}>
                           Attachment {i + 1}
                         </a>
                       ))}
@@ -236,12 +236,12 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
         {commentAttachments.length > 0 && (
           <div className="flex gap-2 mb-2">
             {commentAttachments.map((url, i) => (
-              <span key={i} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--periwinkle-subtle)', color: 'var(--text-primary)' }}>
+              <span key={i} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-text)' }}>
                 File {i + 1}
                 <button
                   type="button"
                   onClick={() => setCommentAttachments(prev => prev.filter((_, j) => j !== i))}
-                  className="ml-1" style={{ color: '#f87171' }}
+                  className="ml-1" style={{ color: 'var(--red)' }}
                 >
                   x
                 </button>

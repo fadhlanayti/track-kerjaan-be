@@ -54,8 +54,8 @@ export function Topbar() {
   }
 
   const roleBg: Record<string, string> = {
-    ADMIN: 'var(--periwinkle)',
-    DEVELOPER: '#0ea5e9',
+    ADMIN: 'var(--accent)',
+    DEVELOPER: 'var(--blue)',
     CLIENT: 'var(--text-muted)',
   }
 
@@ -80,7 +80,7 @@ export function Topbar() {
           {unreadCount > 0 && (
             <span
               className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white rounded-full"
-              style={{ backgroundColor: 'var(--periwinkle)' }}
+              style={{ backgroundColor: 'var(--accent)' }}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
@@ -101,11 +101,11 @@ export function Topbar() {
                   className="px-3 py-2.5 cursor-pointer transition-colors"
                   style={{
                     borderBottom: '1px solid var(--border)',
-                    backgroundColor: n.read ? 'transparent' : 'var(--periwinkle-subtle)',
+                    backgroundColor: n.read ? 'transparent' : '#FFF7ED',
                   }}
                   onClick={() => markRead(n.id)}
-                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = 'var(--bg-card-hover)' }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = n.read ? 'transparent' : 'var(--periwinkle-subtle)' }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = 'var(--bg-elevated)' }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = n.read ? 'transparent' : '#FFF7ED' }}
                 >
                   <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{n.title}</p>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{n.message}</p>
