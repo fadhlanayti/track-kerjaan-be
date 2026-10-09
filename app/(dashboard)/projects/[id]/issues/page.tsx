@@ -16,6 +16,8 @@ interface Issue {
   createdAt: string
 }
 
+const STATUSES = ['OPEN', 'IN_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
+
 export default function IssuesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { data: session } = useSession()
@@ -28,13 +30,13 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
   const [newDesc, setNewDesc] = useState('')
   const [newPriority, setNewPriority] = useState('MEDIUM')
   const [creating, setCreating] = useState(false)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   function fetchIssues() {
-    const params = new URLSearchParams()
-    if (statusFilter) params.set('status', statusFilter)
-    if (priorityFilter) params.set('priority', priorityFilter)
-
-    fetch(`/api/projects/${id}/issues?${params}`)
+    const p = new URLSearchParams()
+    if (statusFilter) p.set('status', statusFilter)
+    if (priorityFilter) p.set('priority', priorityFilter)
+    fetch(`/api/projects/${id}/issues?${p}`)
       .then(r => r.json())
       .then(data => { setIssues(data); setLoading(false) })
       .catch(() => setLoading(false))
@@ -50,99 +52,62 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: newTitle, description: newDesc, priority: newPriority }),
     })
-    if (res.ok) {
-      setNewTitle('')
-      setNewDesc('')
-      setShowCreateForm(false)
-      fetchIssues()
-    }
+    if (res.ok) { setNewTitle(''); setNewDesc(''); setShowCreateForm(false); fetchIssues() }
     setCreating(false)
+  }
+
+  async function quickUpdateStatus(issueId: string, status: string) {
+    setUpdatingId(issueId)
+    await fetch(`/api/projects/${id}/issues/${issueId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    setIssues(prev => prev.map(i => i.id === issueId ? { ...i, status } : i))
+    setUpdatingId(null)
   }
 
   if (loading) return <div className="loading-state">Loading...</div>
 
   const canCreate = session?.user?.role === 'ADMIN' || session?.user?.role === 'CLIENT'
+  const canUpdateStatus = session?.user?.role === 'ADMIN' || session?.user?.role === 'DEVELOPER'
 
   return (
     <div>
       <div className="page-header">
         <h2 className="page-title">Issues</h2>
         {canCreate && (
-          <button
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className="btn-primary"
-          >
-            <Plus size={16} />
-            New Issue
+          <button onClick={() => setShowCreateForm(!showCreateForm)} className="btn-primary">
+            <Plus size={16} /> New Issue
           </button>
         )}
       </div>
 
       {/* Create form */}
       {showCreateForm && (
-        <form onSubmit={createIssue} className="card p-4 mb-4 space-y-3">
-          <input
-            type="text"
-            value={newTitle}
-            onChange={e => setNewTitle(e.target.value)}
-            placeholder="Issue title"
-            required
-            className="input"
-          />
-          <textarea
-            value={newDesc}
-            onChange={e => setNewDesc(e.target.value)}
-            placeholder="Description (optional)"
-            rows={3}
-            className="input resize-none"
-          />
+        <form onSubmit={createIssue} className="card p-4 mb-4" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Issue title" required className="input" />
+          <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Description (optional)" rows={3} className="input resize-none" />
           <div className="flex items-center gap-3">
-            <select
-              value={newPriority}
-              onChange={e => setNewPriority(e.target.value)}
-              className="input"
-              style={{ width: 'auto' }}
-            >
+            <select value={newPriority} onChange={e => setNewPriority(e.target.value)} className="input" style={{ width: 'auto' }}>
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
               <option value="HIGH">High</option>
               <option value="URGENT">Urgent</option>
             </select>
-            <button type="submit" disabled={creating} className="btn-primary">
-              {creating ? 'Creating...' : 'Create'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCreateForm(false)}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
+            <button type="submit" disabled={creating} className="btn-primary">{creating ? 'Creating...' : 'Create'}</button>
+            <button type="button" onClick={() => setShowCreateForm(false)} className="btn-secondary">Cancel</button>
           </div>
         </form>
       )}
 
       {/* Filters */}
-      <div className="flex gap-2 mb-4">
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="input text-xs"
-          style={{ width: 'auto' }}
-        >
+      <div className="flex gap-2 mb-4" style={{ flexWrap: 'wrap' }}>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="input text-xs" style={{ width: 'auto' }}>
           <option value="">All Status</option>
-          <option value="OPEN">Open</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="IN_REVIEW">In Review</option>
-          <option value="RESOLVED">Resolved</option>
-          <option value="CLOSED">Closed</option>
+          {STATUSES.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
         </select>
-        <select
-          value={priorityFilter}
-          onChange={e => setPriorityFilter(e.target.value)}
-          className="input text-xs"
-          style={{ width: 'auto' }}
-        >
+        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} className="input text-xs" style={{ width: 'auto' }}>
           <option value="">All Priority</option>
           <option value="LOW">Low</option>
           <option value="MEDIUM">Medium</option>
@@ -152,32 +117,56 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
       </div>
 
       {/* Issue list */}
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {issues.length === 0 && <p className="empty-state">No issues yet</p>}
         {issues.map(issue => (
-          <Link
-            key={issue.id}
-            href={`/projects/${id}/issues/${issue.id}`}
-            className="card-link p-5"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{issue.title}</p>
-                <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
+          <div key={issue.id} className="card" style={{ padding: '1rem 1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
+              {/* Title + meta */}
+              <div style={{ flex: 1, minWidth: '10rem' }}>
+                <Link
+                  href={`/projects/${id}/issues/${issue.id}`}
+                  style={{ color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 600, fontSize: '0.9375rem' }}
+                >
+                  {issue.title}
+                </Link>
+                <p className="text-xs" style={{ color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                   by {issue.createdBy.name}
-                  {issue.assignedTo ? ` · assigned to ${issue.assignedTo.name}` : ''}
+                  {issue.assignedTo ? ` · ${issue.assignedTo.name}` : ''}
                   {` · ${issue._count.comments} comments`}
                 </p>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+
+              {/* Right side: badges + quick status */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <StatusBadge value={issue.priority} />
-                <StatusBadge value={issue.status} />
+
+                {canUpdateStatus ? (
+                  <select
+                    value={issue.status}
+                    disabled={updatingId === issue.id}
+                    onChange={e => quickUpdateStatus(issue.id, e.target.value)}
+                    onClick={e => e.preventDefault() /* prevent link navigation */}
+                    className="input text-xs"
+                    style={{ width: 'auto', padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    {STATUSES.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+                  </select>
+                ) : (
+                  <StatusBadge value={issue.status} />
+                )}
+
+                <Link
+                  href={`/projects/${id}/issues/${issue.id}`}
+                  className="btn-secondary text-xs"
+                  style={{ padding: '0.25rem 0.625rem', fontSize: '0.75rem' }}
+                >
+                  Detail →
+                </Link>
               </div>
             </div>
-          </Link>
+          </div>
         ))}
-        {issues.length === 0 && (
-          <p className="empty-state">No issues yet</p>
-        )}
       </div>
     </div>
   )

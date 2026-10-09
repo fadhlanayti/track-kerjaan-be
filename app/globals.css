@@ -225,8 +225,8 @@ input[type="checkbox"] { accent-color: var(--accent); }
 
 /* ── Dashboard responsive ── */
 .dashboard-stats {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
   gap: 0.875rem;
 }
 .dashboard-welcome {
@@ -242,12 +242,12 @@ input[type="checkbox"] { accent-color: var(--accent); }
 }
 
 @media (min-width: 480px) {
-  .dashboard-stats { grid-template-columns: 1fr 1fr; }
+  .dashboard-stats { grid-template-columns: 1fr 1fr !important; }
   .dashboard-welcome { flex-direction: row; align-items: center; justify-content: space-between; padding: 1.5rem; }
   .dashboard-welcome-meta { display: block; text-align: right; }
 }
 @media (min-width: 1024px) {
-  .dashboard-stats { grid-template-columns: repeat(4, 1fr); }
+  .dashboard-stats { grid-template-columns: repeat(4, 1fr) !important; }
 }
 .bg-accent  { background-color: var(--accent); }
 .bg-charcoal { background-color: #202524; }
