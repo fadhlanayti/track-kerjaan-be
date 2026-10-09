@@ -1,13 +1,21 @@
 const WA_API_URL = process.env.WA_API_URL!
 const WA_API_KEY = process.env.WA_API_KEY!
 
+/** Strip non-digits, handle 08→628, +62→62, bare number→62 prefix */
+export function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+  if (digits.startsWith('0')) return '62' + digits.slice(1)
+  if (digits.startsWith('62')) return digits
+  return '62' + digits
+}
+
 export async function sendWhatsApp(to: string, message: string): Promise<boolean> {
   try {
     const res = await fetch(`${WA_API_URL}/api/send/text`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${WA_API_KEY}`,
+        'x-api-key': WA_API_KEY,
       },
       body: JSON.stringify({ to, message }),
     })

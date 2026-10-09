@@ -35,38 +35,31 @@ export default function InviteUserPage() {
   }
 
   return (
-    <div className="max-w-sm">
-      <h2 className="text-lg font-bold mb-5" style={{ color: 'var(--text-primary)' }}>Invite User</h2>
+    <div style={{ maxWidth: '28rem' }}>
+      <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--text-primary)' }}>Invite User</h2>
 
-      <div className="card p-5">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+      <div className="card" style={{ padding: '1.5rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
             <label className="label">Name</label>
-            <input
-              type="text" value={name} onChange={e => setName(e.target.value)} required
-              className="input"
-            />
+            <input type="text" value={name} onChange={e => setName(e.target.value)} required className="input" />
           </div>
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
             <label className="label">Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="input" />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+            <label className="label">No. WhatsApp</label>
             <input
-              type="email" value={email} onChange={e => setEmail(e.target.value)} required
+              type="text" value={phone} onChange={e => setPhone(e.target.value)}
+              placeholder="087218381744 / +62812... / 62812..."
               className="input"
             />
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Format bebas — otomatis dikonversi ke 62xxx</p>
           </div>
-          <div>
-            <label className="label">Phone (for WA notification)</label>
-            <input
-              type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="6281234567890"
-              className="input"
-            />
-          </div>
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
             <label className="label">Role</label>
-            <select
-              value={role} onChange={e => setRole(e.target.value)}
-              className="input"
-            >
+            <select value={role} onChange={e => setRole(e.target.value)} className="input">
               <option value="CLIENT">Client</option>
               <option value="DEVELOPER">Developer</option>
             </select>
@@ -74,26 +67,17 @@ export default function InviteUserPage() {
 
           {error && <p className="error-text">{error}</p>}
 
-          <button
-            type="submit" disabled={submitting}
-            className="btn-primary w-full justify-center py-2"
-          >
+          <button type="submit" disabled={submitting} className="btn-primary" style={{ justifyContent: 'center', paddingTop: '0.625rem', paddingBottom: '0.625rem' }}>
             {submitting ? 'Generating...' : 'Generate Invite Link'}
           </button>
         </form>
       </div>
 
       {inviteUrl && (
-        <div
-          className="mt-4 p-4 rounded-xl border"
-          style={{ backgroundColor: 'rgba(8,124,240,0.04)', borderColor: 'rgba(8,124,240,0.15)' }}
-        >
-          <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Invite Link</p>
-          <p className="text-xs break-all" style={{ color: 'var(--accent)' }}>{inviteUrl}</p>
-          <button
-            onClick={() => { navigator.clipboard.writeText(inviteUrl) }}
-            className="btn-secondary mt-2 text-xs py-1 px-2"
-          >
+        <div style={{ marginTop: '1rem', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(8,124,240,0.15)', backgroundColor: 'rgba(8,124,240,0.04)' }}>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.375rem', color: 'var(--text-primary)' }}>Invite Link</p>
+          <p style={{ fontSize: '0.75rem', wordBreak: 'break-all', color: 'var(--accent)' }}>{inviteUrl}</p>
+          <button onClick={() => navigator.clipboard.writeText(inviteUrl)} className="btn-secondary" style={{ marginTop: '0.75rem', fontSize: '0.75rem', padding: '0.25rem 0.75rem' }}>
             Copy to clipboard
           </button>
         </div>

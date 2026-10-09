@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { normalizePhone } from '@/lib/whatsapp'
 import crypto from 'crypto'
 
 export async function POST(req: NextRequest) {
@@ -20,6 +21,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
   }
 
+  const normalizedPhone = phone ? normalizePhone(phone) : null
+
   const inviteToken = crypto.randomUUID()
   const inviteExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000)
 
@@ -27,7 +30,7 @@ export async function POST(req: NextRequest) {
     data: {
       email,
       name,
-      phone: phone || null,
+      phone: normalizedPhone,
       role,
       password: '', // Will be set on claim
       inviteToken,
@@ -39,9 +42,9 @@ export async function POST(req: NextRequest) {
   const inviteUrl = `${process.env.APP_URL}/invite/${inviteToken}`
 
   // Send WA invite if phone provided
-  if (phone) {
+  if (normalizedPhone) {
     const { sendWhatsApp, formatInvite } = await import('@/lib/whatsapp')
-    await sendWhatsApp(phone, formatInvite(inviteUrl))
+    await sendWhatsApp(normalizedPhone, formatInvite(inviteUrl))
   }
 
   return NextResponse.json({ inviteUrl, userId: user.id })

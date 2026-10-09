@@ -38,45 +38,19 @@ export default function DashboardPage() {
   const uniqueMembers = [...new Set(projects.flatMap(p => p.members.map(m => m.user.name)))].length
 
   const stats = [
-    {
-      label: 'Total Projects',
-      value: projects.length,
-      sub: `${activeProjects} active`,
-      icon: FolderKanban,
-      gradient: 'linear-gradient(135deg, #087CF0 0%, #0559B3 100%)',
-    },
-    {
-      label: 'Open Issues',
-      value: totalIssues,
-      sub: 'across all projects',
-      icon: AlertCircle,
-      gradient: 'linear-gradient(135deg, #FFAD78 0%, #F97316 100%)',
-    },
-    {
-      label: 'Team Members',
-      value: uniqueMembers,
-      sub: 'across projects',
-      icon: Users,
-      gradient: 'linear-gradient(135deg, #A98AF5 0%, #7C3AED 100%)',
-    },
-    {
-      label: 'Completed',
-      value: projects.filter(p => p.status === 'COMPLETED').length,
-      sub: 'projects done',
-      icon: CheckCircle2,
-      gradient: 'linear-gradient(135deg, #9BD83B 0%, #4D7C0F 100%)',
-    },
+    { label: 'Total Projects', value: projects.length, sub: `${activeProjects} active`, icon: FolderKanban, color: '#087CF0' },
+    { label: 'Open Issues', value: totalIssues, sub: 'across all projects', icon: AlertCircle, color: '#F97316' },
+    { label: 'Team Members', value: uniqueMembers, sub: 'across projects', icon: Users, color: '#7C3AED' },
+    { label: 'Completed', value: projects.filter(p => p.status === 'COMPLETED').length, sub: 'projects done', icon: CheckCircle2, color: '#15803D' },
   ]
 
   return (
-    <div style={{ maxWidth: '1100px' }}>
+    <div style={{ maxWidth: '1100px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
       {/* Welcome header */}
       <div
-        className="flex items-center justify-between p-6 mb-6 rounded-2xl"
-        style={{
-          background: 'linear-gradient(135deg, #202524 0%, #2d3830 100%)',
-        }}
+        className="flex items-center justify-between p-6 rounded-2xl"
+        style={{ backgroundColor: '#202524' }}
       >
         <div className="flex items-center gap-4">
           <div
@@ -110,26 +84,26 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats grid — colored cards */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 gap-4">
         {stats.map(stat => (
           <div
             key={stat.label}
-            className="rounded-2xl p-5 flex items-center gap-4"
-            style={{ background: stat.gradient, boxShadow: '0 4px 16px rgba(0,0,0,0.10)' }}
+            className="card p-5 flex items-center gap-4"
+            style={{ borderLeft: `4px solid ${stat.color}` }}
           >
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
+              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: `${stat.color}15` }}
             >
-              <stat.icon size={22} color="white" />
+              <stat.icon size={20} color={stat.color} />
             </div>
             <div>
-              <p className="text-3xl font-bold text-white" style={{ lineHeight: 1.1 }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)', lineHeight: 1.1 }}>
                 {stat.value}
               </p>
-              <p className="text-sm font-semibold text-white mt-0.5">{stat.label}</p>
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{stat.sub}</p>
+              <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>{stat.label}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{stat.sub}</p>
             </div>
           </div>
         ))}

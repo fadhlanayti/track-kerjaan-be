@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { Bell, LogOut } from 'lucide-react'
+import { Bell, LogOut, Menu } from 'lucide-react'
+import { useSidebar } from './providers'
 
 interface Notification {
   id: string
@@ -15,6 +16,7 @@ interface Notification {
 
 export function Topbar() {
   const { data: session } = useSession()
+  const { toggle } = useSidebar()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showNotifs, setShowNotifs] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
@@ -61,14 +63,26 @@ export function Topbar() {
 
   return (
     <header
-      className="fixed top-0 right-0 flex items-center justify-end gap-3 px-5 z-20"
+      className="fixed top-0 right-0 flex items-center justify-between gap-3 px-5 z-20"
       style={{
-        left: 'var(--sidebar-width)',
+        left: 0,
         height: 'var(--topbar-height)',
         backgroundColor: 'var(--bg-sidebar)',
         borderBottom: '1px solid var(--border)',
       }}
     >
+      {/* Hamburger — visible on mobile */}
+      <button
+        onClick={toggle}
+        className="nav-item p-2 md:hidden"
+        style={{ gap: 0 }}
+      >
+        <Menu size={20} />
+      </button>
+      {/* Spacer on desktop (push right items to right) */}
+      <div className="hidden md:block flex-1" />
+
+      <div className="flex items-center gap-3">
       {/* Notifications */}
       <div className="relative" ref={notifRef}>
         <button
@@ -148,6 +162,7 @@ export function Topbar() {
             </button>
           </div>
         )}
+      </div>
       </div>
     </header>
   )

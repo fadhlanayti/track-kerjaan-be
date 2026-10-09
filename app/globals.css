@@ -412,6 +412,13 @@ option { background: var(--bg-card); color: var(--text-primary); }
 /* Checkbox accent override */
 input[type="checkbox"] { accent-color: var(--accent); }
 
+/* Responsive layout — desktop sidebar always open */
+@media (min-width: 768px) {
+  aside.fixed { transform: translateX(0) !important; }
+  header.fixed { left: var(--sidebar-width) !important; }
+  .md-main { margin-left: var(--sidebar-width); padding-left: 2rem !important; padding-right: 2rem !important; }
+}
+
 /* Section divider */
 .section-title {
   font-size: 0.75rem;
