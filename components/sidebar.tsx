@@ -19,16 +19,30 @@ export function Sidebar() {
   return (
     <aside
       className="fixed left-0 top-0 h-full flex flex-col z-30"
-      style={{ width: 'var(--sidebar-width)', backgroundColor: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)' }}
+      style={{
+        width: 'var(--sidebar-width)',
+        backgroundColor: '#202524',
+        borderRight: 'none',
+      }}
     >
-      <div className="p-5" style={{ borderBottom: '1px solid var(--border)' }}>
-        <h1 className="text-base font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-          WeballCreative
-        </h1>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--accent)' }}>Project Tracker</p>
+      {/* Brand */}
+      <div className="px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex items-center gap-2.5 mb-0.5">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+            style={{ backgroundColor: '#087CF0' }}
+          >
+            W
+          </div>
+          <h1 className="text-sm font-bold tracking-tight text-white">
+            WeballCreative
+          </h1>
+        </div>
+        <p className="text-xs ml-9" style={{ color: 'rgba(255,255,255,0.4)' }}>Project Tracker</p>
       </div>
 
-      <nav className="flex-1 py-3 px-3 space-y-0.5">
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {navItems
           .filter(item => item.roles.includes(role))
           .map(item => {
@@ -37,17 +51,39 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`nav-item ${active ? 'active' : ''}`}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+                style={{
+                  color: active ? '#ffffff' : 'rgba(255,255,255,0.55)',
+                  backgroundColor: active ? '#087CF0' : 'transparent',
+                }}
+                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                  if (!active) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)'
+                }}
+                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                  if (!active) e.currentTarget.style.backgroundColor = 'transparent'
+                }}
               >
-                <item.icon size={18} />
+                <item.icon size={17} />
                 {item.label}
               </Link>
             )
           })}
       </nav>
 
-      <div className="px-4 py-3 text-xs" style={{ borderTop: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-        v1.0.0
+      {/* User info at bottom */}
+      <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
+            style={{ backgroundColor: '#087CF0' }}
+          >
+            {(session?.user?.name || '?')[0].toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-white truncate">{session?.user?.name}</p>
+            <p className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{session?.user?.role}</p>
+          </div>
+        </div>
       </div>
     </aside>
   )

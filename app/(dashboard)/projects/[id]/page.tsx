@@ -36,25 +36,29 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{project.name}</h2>
-          {project.description && <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{project.description}</p>}
+          {project.description && <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{project.description}</p>}
         </div>
         <StatusBadge value={project.status} />
       </div>
 
       {/* Quick links */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-        <Link href={`/projects/${id}/issues`} className="card-link p-4 flex items-center gap-3">
-          <AlertCircle size={20} style={{ color: 'var(--accent)' }} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <Link href={`/projects/${id}/issues`} className="card-link p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(8,124,240,0.08)' }}>
+            <AlertCircle size={20} style={{ color: 'var(--accent)' }} />
+          </div>
           <div>
             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Issues</p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{project._count.issues} total</p>
           </div>
         </Link>
-        <Link href={`/projects/${id}/chat`} className="card-link p-4 flex items-center gap-3">
-          <MessageSquare size={20} style={{ color: 'var(--accent)' }} />
+        <Link href={`/projects/${id}/chat`} className="card-link p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(8,124,240,0.08)' }}>
+            <MessageSquare size={20} style={{ color: 'var(--accent)' }} />
+          </div>
           <div>
             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Chat</p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Real-time messaging</p>
@@ -64,9 +68,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Members */}
       <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Members</h3>
-      <div className="space-y-1.5">
+      <div className="space-y-2.5">
         {project.members.map(m => (
-          <div key={m.user.id} className="card p-3 flex items-center gap-3">
+          <div key={m.user.id} className="card p-4 flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
               style={{ backgroundColor: avatarBg(m.user.role) }}

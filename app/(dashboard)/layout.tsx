@@ -14,7 +14,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-body)' }}>
       <Sidebar />
       <Topbar />
-      <main className="ml-60 mt-14 p-6">
+      <main style={{ marginLeft: 'var(--sidebar-width)', marginTop: 'var(--topbar-height)', padding: '1.75rem 2rem' }}>
         {children}
       </main>
     </div>

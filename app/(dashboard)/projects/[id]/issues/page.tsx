@@ -152,17 +152,17 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
       </div>
 
       {/* Issue list */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {issues.map(issue => (
           <Link
             key={issue.id}
             href={`/projects/${id}/issues/${issue.id}`}
-            className="card-link p-4"
+            className="card-link p-5"
           >
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{issue.title}</p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{issue.title}</p>
+                <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
                   by {issue.createdBy.name}
                   {issue.assignedTo ? ` · assigned to ${issue.assignedTo.name}` : ''}
                   {` · ${issue._count.comments} comments`}

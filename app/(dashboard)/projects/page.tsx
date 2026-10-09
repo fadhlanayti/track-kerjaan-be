@@ -41,22 +41,30 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {projects.map(project => (
           <Link
             key={project.id}
             href={`/projects/${project.id}`}
-            className="card-link p-4"
+            className="card-link p-5"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{project.name}</p>
-                {project.description && (
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{project.description}</p>
-                )}
-                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                  {project._count.issues} issues · {project.members.length} members
-                </p>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                  style={{ backgroundColor: '#087CF0' }}
+                >
+                  {project.name[0].toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{project.name}</p>
+                  {project.description && (
+                    <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-secondary)' }}>{project.description}</p>
+                  )}
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                    {project._count.issues} issues · {project.members.length} members
+                  </p>
+                </div>
               </div>
               <StatusBadge value={project.status} />
             </div>
