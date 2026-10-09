@@ -25,20 +25,19 @@ export function Sidebar() {
 
   return (
     <>
-      {open && <div className="fixed inset-0 z-20 bg-black/40 md:hidden" onClick={toggle} />}
+      <div className={`sidebar-overlay${open ? ' show' : ''}`} onClick={toggle} />
 
-      <aside className={`fixed left-0 top-0 h-full w-60 flex flex-col z-30 bg-[#202524] transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-
+      <aside className={`sidebar${open ? ' open' : ''}`}>
         {/* Brand */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-white/[0.08]">
+        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div>
             <div className="flex items-center gap-2.5 mb-0.5">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 bg-[#087CF0]">W</div>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 bg-accent">W</div>
               <h1 className="text-sm font-bold tracking-tight text-white">WeballCreative</h1>
             </div>
-            <p className="text-xs ml-9 text-white/40">Project Tracker</p>
+            <p className="text-xs ml-9" style={{ color: 'rgba(255,255,255,0.4)' }}>Project Tracker</p>
           </div>
-          <button onClick={toggle} className="md:hidden text-white/50 hover:text-white p-1 rounded-lg cursor-pointer bg-transparent border-none">
+          <button onClick={toggle} className="hamburger items-center justify-center w-7 h-7 rounded-lg cursor-pointer border-none bg-transparent" style={{ color: 'rgba(255,255,255,0.5)' }}>
             <X size={18} />
           </button>
         </div>
@@ -52,9 +51,7 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => { if (window.innerWidth < 768) toggle() }}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors no-underline ${
-                  active ? 'bg-[#087CF0] text-white' : 'text-white/55 hover:bg-white/[0.07] hover:text-white'
-                }`}
+                className={`nav-sidebar${active ? ' active' : ''}`}
               >
                 <item.icon size={17} />
                 {item.label}
@@ -64,14 +61,14 @@ export function Sidebar() {
         </nav>
 
         {/* User info */}
-        <div className="px-4 py-4 border-t border-white/[0.08]">
+        <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 bg-[#087CF0]">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 bg-accent">
               {(session?.user?.name || '?')[0].toUpperCase()}
             </div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-white truncate">{session?.user?.name}</p>
-              <p className="text-[11px] text-white/40 truncate">{session?.user?.role}</p>
+              <p className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{session?.user?.role}</p>
             </div>
           </div>
         </div>

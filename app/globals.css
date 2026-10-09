@@ -191,3 +191,69 @@ option { background: var(--bg-card); color: var(--text-primary); }
 .link-accent:hover { text-decoration: underline; }
 
 input[type="checkbox"] { accent-color: var(--accent); }
+
+/* ── Layout responsive ── */
+.sidebar {
+  position: fixed; left: 0; top: 0; height: 100%; width: var(--sidebar-width);
+  background: #202524; display: flex; flex-direction: column; z-index: 30;
+  transition: transform 0.3s;
+  transform: translateX(-100%);
+}
+.sidebar.open   { transform: translateX(0); }
+.sidebar-overlay { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,0.4); display: none; }
+.sidebar-overlay.show { display: block; }
+
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--topbar-height);
+  background: #fff; border-bottom: 1px solid var(--border);
+  z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 0 1.25rem;
+}
+.main-area {
+  margin-top: var(--topbar-height);
+  padding: 1.25rem;
+}
+.hamburger { display: flex; }
+
+@media (min-width: 768px) {
+  .sidebar { transform: translateX(0) !important; }
+  .sidebar-overlay { display: none !important; }
+  .topbar { left: var(--sidebar-width); }
+  .main-area { margin-left: var(--sidebar-width); padding: 1.75rem 2rem; }
+  .hamburger { display: none; }
+}
+
+/* ── Warna helper ── */
+.bg-accent  { background-color: var(--accent); }
+.bg-charcoal { background-color: #202524; }
+.bg-elevated { background-color: var(--bg-elevated); }
+.text-accent  { color: var(--accent); }
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.border-color { border-color: var(--border); }
+
+/* stat card left border colors */
+.border-l-accent  { border-left: 4px solid var(--accent); }
+.border-l-orange  { border-left: 4px solid #F97316; }
+.border-l-purple  { border-left: 4px solid #7C3AED; }
+.border-l-green   { border-left: 4px solid #15803D; }
+.border-l-teal    { border-left: 4px solid #0E7490; }
+
+/* icon bg */
+.icon-bg-accent  { background-color: rgba(8,124,240,0.1); }
+.icon-bg-orange  { background-color: rgba(249,115,22,0.1); }
+.icon-bg-purple  { background-color: rgba(124,58,237,0.1); }
+.icon-bg-green   { background-color: rgba(21,128,61,0.1); }
+.icon-bg-teal    { background-color: rgba(14,116,144,0.1); }
+
+/* nav link in sidebar */
+.nav-sidebar {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.625rem 0.75rem; border-radius: 0.75rem;
+  font-size: 0.875rem; font-weight: 500;
+  color: rgba(255,255,255,0.55); text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+.nav-sidebar:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.nav-sidebar.active { background: var(--accent); color: #fff; }
