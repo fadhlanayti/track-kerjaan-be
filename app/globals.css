@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #122056;
+  --periwinkle: #5B65DC;
+  --lavender: #E6E7F0;
+  --offwhite: #FAFAFA;
+  --white: #FFFFFF;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--offwhite);
+  color: var(--navy);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--lavender);
+}
+::-webkit-scrollbar-thumb {
+  background: #c0c4dc;
+  border-radius: 3px;
+}
+
+/* Focus rings */
+*:focus-visible {
+  outline: 2px solid var(--periwinkle);
+  outline-offset: 2px;
+}
+
+/* Prose in markdown */
+.prose {
+  color: var(--navy);
+  line-height: 1.6;
+}
+.prose p { margin: 0.5rem 0; }
+.prose ul { padding-left: 1.25rem; }
+.prose code {
+  background: var(--lavender);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.875em;
+}
+.prose pre {
+  background: var(--lavender);
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+}
