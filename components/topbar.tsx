@@ -5,13 +5,7 @@ import { Bell, LogOut, Menu } from 'lucide-react'
 import { useSidebar } from './providers'
 
 interface Notification {
-  id: string
-  title: string
-  message: string
-  read: boolean
-  createdAt: string
-  referenceId?: string
-  referenceType?: string
+  id: string; title: string; message: string; read: boolean; createdAt: string
 }
 
 export function Topbar() {
@@ -24,145 +18,95 @@ export function Topbar() {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch('/api/notifications')
-      .then(r => r.json())
-      .then(data => { if (Array.isArray(data)) setNotifications(data) })
-      .catch(() => {})
-
-    const interval = setInterval(() => {
-      fetch('/api/notifications')
-        .then(r => r.json())
-        .then(data => { if (Array.isArray(data)) setNotifications(data) })
-        .catch(() => {})
-    }, 30000)
-
-    return () => clearInterval(interval)
+    const load = () => fetch('/api/notifications').then(r => r.json()).then(d => { if (Array.isArray(d)) setNotifications(d) }).catch(() => {})
+    load()
+    const t = setInterval(load, 30000)
+    return () => clearInterval(t)
   }, [])
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
+    function handler(e: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setShowNotifs(false)
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false)
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unread = notifications.filter(n => !n.read).length
 
   async function markRead(id: string) {
     await fetch(`/api/notifications/${id}/read`, { method: 'PATCH' })
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
   }
 
-  const roleBg: Record<string, string> = {
-    ADMIN: 'var(--charcoal)',
-    DEVELOPER: 'var(--accent)',
-    CLIENT: 'var(--text-muted)',
-  }
-
   return (
-    <header
-      className="fixed top-0 right-0 flex items-center justify-between gap-3 px-5 z-20"
-      style={{
-        left: 0,
-        height: 'var(--topbar-height)',
-        backgroundColor: 'var(--bg-sidebar)',
-        borderBottom: '1px solid var(--border)',
-      }}
-    >
-      {/* Hamburger — visible on mobile */}
-      <button
-        onClick={toggle}
-        className="nav-item p-2 md:hidden"
-        style={{ gap: 0 }}
-      >
+    <header className="fixed top-0 left-0 right-0 md:left-60 h-topbar bg-white border-b border-border z-20 flex items-center justify-between px-5">
+      {/* Hamburger — mobile only */}
+      <button onClick={toggle} className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-elevated text-text-secondary cursor-pointer border-none bg-transparent">
         <Menu size={20} />
       </button>
-      {/* Spacer on desktop (push right items to right) */}
-      <div className="hidden md:block flex-1" />
+      <div className="flex-1" />
 
-      <div className="flex items-center gap-3">
-      {/* Notifications */}
-      <div className="relative" ref={notifRef}>
-        <button
-          onClick={() => setShowNotifs(!showNotifs)}
-          className="nav-item p-2"
-          style={{ gap: 0 }}
-        >
-          <Bell size={19} />
-          {unreadCount > 0 && (
-            <span
-              className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white rounded-full"
-              style={{ backgroundColor: 'var(--accent)' }}
-            >
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </button>
-
-        {showNotifs && (
-          <div className="dropdown" style={{ width: '20rem', maxHeight: '24rem', overflowY: 'auto' }}>
-            <div className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
-              Notifications
-            </div>
-            {notifications.length === 0 ? (
-              <div className="p-4 text-sm text-center" style={{ color: 'var(--text-muted)' }}>No notifications</div>
-            ) : (
-              notifications.slice(0, 20).map(n => (
+      <div className="flex items-center gap-2">
+        {/* Notifications */}
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={() => setShowNotifs(!showNotifs)}
+            className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-elevated text-text-secondary cursor-pointer border-none bg-transparent"
+          >
+            <Bell size={19} />
+            {unread > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white rounded-full bg-accent">
+                {unread > 9 ? '9+' : unread}
+              </span>
+            )}
+          </button>
+          {showNotifs && (
+            <div className="dropdown w-80 max-h-96 overflow-y-auto">
+              <div className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-muted border-b border-border">Notifications</div>
+              {notifications.length === 0 ? (
+                <div className="p-4 text-sm text-center text-text-muted">No notifications</div>
+              ) : notifications.slice(0, 20).map(n => (
                 <div
                   key={n.id}
-                  className="px-3 py-2.5 cursor-pointer transition-colors"
-                  style={{
-                    borderBottom: '1px solid var(--border)',
-                    backgroundColor: n.read ? 'transparent' : 'rgba(8,124,240,0.05)',
-                  }}
                   onClick={() => markRead(n.id)}
-                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = 'var(--bg-elevated)' }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = n.read ? 'transparent' : 'rgba(8,124,240,0.05)' }}
+                  className={`px-3 py-2.5 cursor-pointer border-b border-border hover:bg-elevated transition-colors ${n.read ? '' : 'bg-accent/5'}`}
                 >
-                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{n.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{n.message}</p>
+                  <p className="text-sm font-medium text-text-primary">{n.title}</p>
+                  <p className="text-xs mt-0.5 text-text-muted">{n.message}</p>
                 </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* User Menu */}
-      <div className="relative" ref={menuRef}>
-        <button
-          onClick={() => setShowMenu(!showMenu)}
-          className="nav-item py-1.5 px-2"
-        >
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
-            style={{ backgroundColor: roleBg[session?.user?.role || 'CLIENT'] }}
-          >
-            {(session?.user?.name || '?')[0].toUpperCase()}
-          </div>
-          <span className="text-sm font-medium hidden sm:block" style={{ color: 'var(--text-primary)' }}>
-            {session?.user?.name}
-          </span>
-        </button>
-
-        {showMenu && (
-          <div className="dropdown" style={{ width: '12rem' }}>
-            <div className="px-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
-              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{session?.user?.name}</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{session?.user?.role}</p>
+              ))}
             </div>
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="nav-item w-full rounded-none px-3 py-2.5"
-            >
-              <LogOut size={16} />
-              Sign Out
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+
+        {/* User Menu */}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-elevated transition-colors cursor-pointer border-none bg-transparent"
+          >
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium bg-charcoal">
+              {(session?.user?.name || '?')[0].toUpperCase()}
+            </div>
+            <span className="text-sm font-medium text-text-primary hidden sm:block">{session?.user?.name}</span>
+          </button>
+          {showMenu && (
+            <div className="dropdown w-48">
+              <div className="px-3 py-2.5 border-b border-border">
+                <p className="text-sm font-medium text-text-primary">{session?.user?.name}</p>
+                <p className="text-xs text-text-muted">{session?.user?.role}</p>
+              </div>
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-text-secondary hover:bg-elevated transition-colors cursor-pointer border-none bg-transparent"
+              >
+                <LogOut size={16} /> Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

@@ -11,10 +11,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!session) redirect('/login')
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-body)' }}>
+    <div className="min-h-screen bg-body">
       <Sidebar />
       <Topbar />
-      <main style={{ marginTop: 'var(--topbar-height)', padding: '1.75rem 1.25rem' }} className="md-main">
+      <main className="mt-topbar p-5 md:ml-sidebar md:p-7">
         {children}
       </main>
     </div>

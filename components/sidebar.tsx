@@ -23,97 +23,60 @@ export function Sidebar() {
     return pathname === item.href || pathname.startsWith(item.href + '/')
   }
 
-  function handleNavClick() {
-    // close on mobile after navigation
-    if (window.innerWidth < 768) toggle()
-  }
-
   return (
     <>
       {/* Mobile overlay */}
       {open && (
-        <div
-          className="fixed inset-0 z-20 bg-black/40"
-          style={{ display: 'block' }}
-          onClick={toggle}
-        />
+        <div className="fixed inset-0 z-20 bg-black/40 md:hidden" onClick={toggle} />
       )}
 
-      <aside
-        className="fixed left-0 top-0 h-full flex flex-col z-30 transition-transform"
-        style={{
-          width: 'var(--sidebar-width)',
-          backgroundColor: '#202524',
-          // On mobile: slide out when closed, always visible on desktop
-          transform: open ? 'translateX(0)' : 'translateX(-100%)',
-        }}
-      >
+      <aside className={`fixed left-0 top-0 h-full w-60 flex flex-col z-30 bg-charcoal transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+
         {/* Brand */}
-        <div className="px-5 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex items-center justify-between px-5 py-5 border-b border-white/8">
           <div>
             <div className="flex items-center gap-2.5 mb-0.5">
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                style={{ backgroundColor: '#087CF0' }}
-              >
-                W
-              </div>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 bg-accent">W</div>
               <h1 className="text-sm font-bold tracking-tight text-white">WeballCreative</h1>
             </div>
-            <p className="text-xs ml-9" style={{ color: 'rgba(255,255,255,0.4)' }}>Project Tracker</p>
+            <p className="text-xs ml-9 text-white/40">Project Tracker</p>
           </div>
-          {/* Close button — visible on mobile */}
-          <button
-            onClick={toggle}
-            className="text-white/50 hover:text-white p-1 rounded-lg transition-colors md:hidden"
-            style={{ flexShrink: 0 }}
-          >
+          <button onClick={toggle} className="md:hidden text-white/50 hover:text-white p-1 rounded-lg cursor-pointer bg-transparent border-none">
             <X size={18} />
           </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          {navItems
-            .filter(item => item.roles.includes(role))
-            .map(item => {
-              const active = isActive(item)
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={handleNavClick}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
-                  style={{
-                    color: active ? '#ffffff' : 'rgba(255,255,255,0.55)',
-                    backgroundColor: active ? '#087CF0' : 'transparent',
-                  }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                    if (!active) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)'
-                  }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                    if (!active) e.currentTarget.style.backgroundColor = 'transparent'
-                  }}
-                >
-                  <item.icon size={17} />
-                  {item.label}
-                </Link>
-              )
-            })}
+        <nav className="flex-1 flex flex-col gap-1 px-3 py-4 overflow-y-auto">
+          {navItems.filter(item => item.roles.includes(role)).map(item => {
+            const active = isActive(item)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => { if (window.innerWidth < 768) toggle() }}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-accent text-white'
+                    : 'text-white/55 hover:bg-white/7 hover:text-white'
+                }`}
+              >
+                <item.icon size={17} />
+                {item.label}
+              </Link>
+            )
+          })}
         </nav>
 
         {/* User info */}
-        <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="px-4 py-4 border-t border-white/8">
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
-              style={{ backgroundColor: '#087CF0' }}
-            >
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 bg-accent">
               {(session?.user?.name || '?')[0].toUpperCase()}
             </div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-white truncate">{session?.user?.name}</p>
-              <p className="text-[11px] truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{session?.user?.role}</p>
+              <p className="text-[11px] text-white/40 truncate">{session?.user?.role}</p>
             </div>
           </div>
         </div>

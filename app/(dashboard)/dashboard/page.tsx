@@ -2,17 +2,11 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import {
-  FolderKanban, AlertCircle, CheckCircle2, ArrowRight,
-  Users, Clock, TrendingUp, Plus
-} from 'lucide-react'
+import { FolderKanban, AlertCircle, CheckCircle2, ArrowRight, Users, Clock, TrendingUp, Plus } from 'lucide-react'
 import { StatusBadge } from '@/components/status-badge'
 
 interface Project {
-  id: string
-  name: string
-  status: string
-  description: string | null
+  id: string; name: string; status: string; description: string | null
   _count: { issues: number }
   members: { user: { name: string; role: string } }[]
   updatedAt: string
@@ -38,47 +32,34 @@ export default function DashboardPage() {
   const uniqueMembers = [...new Set(projects.flatMap(p => p.members.map(m => m.user.name)))].length
 
   const stats = [
-    { label: 'Total Projects', value: projects.length, sub: `${activeProjects} active`, icon: FolderKanban, color: '#087CF0' },
-    { label: 'Open Issues', value: totalIssues, sub: 'across all projects', icon: AlertCircle, color: '#F97316' },
-    { label: 'Team Members', value: uniqueMembers, sub: 'across projects', icon: Users, color: '#7C3AED' },
-    { label: 'Completed', value: projects.filter(p => p.status === 'COMPLETED').length, sub: 'projects done', icon: CheckCircle2, color: '#15803D' },
+    { label: 'Total Projects', value: projects.length, sub: `${activeProjects} active`, icon: FolderKanban, color: 'border-l-[#087CF0]', iconBg: 'bg-[#087CF0]/10', iconColor: '#087CF0' },
+    { label: 'Open Issues', value: totalIssues, sub: 'across all projects', icon: AlertCircle, color: 'border-l-[#F97316]', iconBg: 'bg-[#F97316]/10', iconColor: '#F97316' },
+    { label: 'Team Members', value: uniqueMembers, sub: 'across projects', icon: Users, color: 'border-l-[#7C3AED]', iconBg: 'bg-[#7C3AED]/10', iconColor: '#7C3AED' },
+    { label: 'Completed', value: projects.filter(p => p.status === 'COMPLETED').length, sub: 'projects done', icon: CheckCircle2, color: 'border-l-[#15803D]', iconBg: 'bg-[#15803D]/10', iconColor: '#15803D' },
   ]
 
   return (
-    <div style={{ maxWidth: '1100px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="max-w-5xl flex flex-col gap-6">
 
       {/* Welcome header */}
-      <div
-        className="flex items-center justify-between p-6 rounded-2xl"
-        style={{ backgroundColor: '#202524' }}
-      >
+      <div className="flex items-center justify-between p-6 rounded-2xl bg-charcoal">
         <div className="flex items-center gap-4">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
-            style={{ backgroundColor: '#087CF0' }}
-          >
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shrink-0 bg-accent">
             {(session?.user?.name || 'U')[0].toUpperCase()}
           </div>
           <div>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Welcome back</p>
+            <p className="text-sm text-white/50">Welcome back</p>
             <h1 className="text-xl font-bold text-white">{session?.user?.name}</h1>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              {session?.user?.role} · WeballCreative
-            </p>
+            <p className="text-xs mt-0.5 text-white/35">{session?.user?.role} · WeballCreative</p>
           </div>
         </div>
         <div className="text-right hidden sm:block">
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <p className="text-sm text-white/50">
             {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
           {isAdmin && (
-            <Link
-              href="/projects/new"
-              className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-white"
-              style={{ backgroundColor: '#087CF0' }}
-            >
-              <Plus size={13} />
-              New Project
+            <Link href="/projects/new" className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-accent">
+              <Plus size={13} /> New Project
             </Link>
           )}
         </div>
@@ -87,23 +68,14 @@ export default function DashboardPage() {
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-4">
         {stats.map(stat => (
-          <div
-            key={stat.label}
-            className="card p-5 flex items-center gap-4"
-            style={{ borderLeft: `4px solid ${stat.color}` }}
-          >
-            <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${stat.color}15` }}
-            >
-              <stat.icon size={20} color={stat.color} />
+          <div key={stat.label} className={`card p-5 flex items-center gap-4 border-l-4 ${stat.color}`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${stat.iconBg}`}>
+              <stat.icon size={20} color={stat.iconColor} />
             </div>
             <div>
-              <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)', lineHeight: 1.1 }}>
-                {stat.value}
-              </p>
-              <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>{stat.label}</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{stat.sub}</p>
+              <p className="text-2xl font-bold text-text-primary leading-tight">{stat.value}</p>
+              <p className="text-sm font-semibold text-text-primary mt-0.5">{stat.label}</p>
+              <p className="text-xs text-text-muted mt-0.5">{stat.sub}</p>
             </div>
           </div>
         ))}
@@ -111,31 +83,22 @@ export default function DashboardPage() {
 
       {/* Recent Projects */}
       <div className="card overflow-hidden">
-        <div
-          className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: '1px solid var(--border)' }}
-        >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <TrendingUp size={16} style={{ color: 'var(--accent)' }} />
-            <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-              Recent Projects
-            </h2>
+            <TrendingUp size={16} className="text-accent" />
+            <h2 className="text-sm font-semibold text-text-primary">Recent Projects</h2>
           </div>
-          <Link
-            href="/projects"
-            className="flex items-center gap-1 text-xs font-medium"
-            style={{ color: 'var(--accent)' }}
-          >
+          <Link href="/projects" className="flex items-center gap-1 text-xs font-medium text-accent">
             View all <ArrowRight size={13} />
           </Link>
         </div>
 
         {projects.length === 0 ? (
           <div className="empty-state">
-            <FolderKanban size={32} style={{ color: 'var(--border)', marginBottom: '0.5rem' }} />
+            <FolderKanban size={32} className="text-border mb-2" />
             <p>No projects yet</p>
             {isAdmin && (
-              <Link href="/projects/new" className="btn-primary mt-3" style={{ fontSize: '0.8125rem' }}>
+              <Link href="/projects/new" className="btn-primary mt-3 text-[0.8125rem]">
                 <Plus size={14} /> Create first project
               </Link>
             )}
@@ -146,50 +109,32 @@ export default function DashboardPage() {
               <Link
                 key={project.id}
                 href={`/projects/${project.id}`}
-                className="flex items-center justify-between px-5 py-4 transition-colors"
-                style={{
-                  borderBottom: i < Math.min(projects.length, 8) - 1 ? '1px solid var(--border)' : 'none',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                  e.currentTarget.style.backgroundColor = '#F8F8F6'
-                }}
-                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                  e.currentTarget.style.backgroundColor = 'transparent'
-                }}
+                className={`flex items-center justify-between px-5 py-4 hover:bg-elevated transition-colors no-underline text-inherit ${i < Math.min(projects.length, 8) - 1 ? 'border-b border-border' : ''}`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                    style={{ backgroundColor: '#087CF0' }}
-                  >
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0 bg-accent">
                     {project.name[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                      {project.name}
-                    </p>
+                    <p className="text-sm font-semibold truncate text-text-primary">{project.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        <AlertCircle size={11} />
-                        {project._count.issues} issues
+                      <span className="flex items-center gap-1 text-xs text-text-muted">
+                        <AlertCircle size={11} /> {project._count.issues} issues
                       </span>
-                      <span style={{ color: 'var(--border)' }}>·</span>
-                      <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        <Users size={11} />
-                        {project.members.length} members
+                      <span className="text-border">·</span>
+                      <span className="flex items-center gap-1 text-xs text-text-muted">
+                        <Users size={11} /> {project.members.length} members
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+                <div className="flex items-center gap-3 shrink-0 ml-3">
                   <StatusBadge value={project.status} />
-                  <span className="flex items-center gap-1 text-xs hidden sm:flex" style={{ color: 'var(--text-muted)' }}>
+                  <span className="hidden sm:flex items-center gap-1 text-xs text-text-muted">
                     <Clock size={11} />
                     {new Date(project.updatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                   </span>
-                  <ArrowRight size={15} style={{ color: 'var(--border)' }} />
+                  <ArrowRight size={15} className="text-border" />
                 </div>
               </Link>
             ))}
