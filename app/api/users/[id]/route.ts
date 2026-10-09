@@ -48,10 +48,28 @@ export async function DELETE(
   }
 
   const { id } = await params
-  await prisma.user.update({
-    where: { id },
-    data: { isActive: false },
-  })
+
+  // Can't delete yourself
+  if (session.user.id === id) {
+    return NextResponse.json({ error: 'Cannot delete yourself' }, { status: 400 })
+  }
+
+  // Hard delete — clear FK refs then delete user in transaction
+  await prisma.$transaction([
+    // Nullify assignedToId on issues
+    prisma.issue.updateMany({ where: { assignedToId: id }, data: { assignedToId: null } }),
+    // Delete records with non-cascade FK to user
+    prisma.issueComment.deleteMany({ where: { authorId: id } }),
+    prisma.issueActivity.deleteMany({ where: { userId: id } }),
+    prisma.chatMessage.deleteMany({ where: { senderId: id } }),
+    // Cascade-enabled: memberships, notifications auto-deleted
+    // Issues created by user — reassign to admin or delete
+    prisma.issue.deleteMany({ where: { createdById: id } }),
+    // Projects created by user
+    prisma.project.deleteMany({ where: { createdById: id } }),
+    // Finally delete user
+    prisma.user.delete({ where: { id } }),
+  ])
 
   return NextResponse.json({ success: true })
 }

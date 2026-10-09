@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, Trash2 } from 'lucide-react'
 
 interface User {
   id: string
@@ -16,6 +16,7 @@ interface User {
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/users')
@@ -31,6 +32,19 @@ export default function UsersPage() {
       body: JSON.stringify({ isActive: !user.isActive }),
     })
     setUsers(prev => prev.map(u => u.id === user.id ? { ...u, isActive: !u.isActive } : u))
+  }
+
+  async function deleteUser(user: User) {
+    if (!confirm(`Hapus user "${user.name}" secara permanen? Semua data terkait (project, issue, comment) juga akan dihapus.`)) return
+    setDeleting(user.id)
+    const res = await fetch(`/api/users/${user.id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setUsers(prev => prev.filter(u => u.id !== user.id))
+    } else {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || 'Gagal menghapus user')
+    }
+    setDeleting(null)
   }
 
   if (loading) return <div className="loading-state">Loading...</div>
@@ -68,13 +82,24 @@ export default function UsersPage() {
                   </span>
                 </td>
                 <td className="text-right">
-                  <button
-                    onClick={() => toggleActive(user)}
-                    className="btn-secondary text-xs py-1 px-2"
-                    style={{ color: user.isActive ? 'var(--red)' : 'var(--green)' }}
-                  >
-                    {user.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                    <button
+                      onClick={() => toggleActive(user)}
+                      className="btn-secondary text-xs py-1 px-2"
+                      style={{ color: user.isActive ? 'var(--red)' : 'var(--green)' }}
+                    >
+                      {user.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button
+                      onClick={() => deleteUser(user)}
+                      disabled={deleting === user.id}
+                      className="btn-secondary text-xs py-1 px-2"
+                      style={{ color: 'var(--red)' }}
+                    >
+                      <Trash2 size={13} />
+                      {deleting === user.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
