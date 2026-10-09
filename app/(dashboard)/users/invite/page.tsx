@@ -26,7 +26,7 @@ export default function InviteUserPage() {
 
   return (
     <div className="max-w-md">
-      <h2 className="text-lg font-bold mb-5 text-text-primary">Invite User</h2>
+      <h2 className="text-lg font-bold mb-5 text-[#202524]">Invite User</h2>
 
       <div className="card p-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -45,7 +45,7 @@ export default function InviteUserPage() {
               placeholder="087218381744 / +62812... / 62812..."
               className="input"
             />
-            <p className="text-xs text-text-muted">Format bebas — otomatis dikonversi ke 62xxx</p>
+            <p className="text-xs text-[#737773]">Format bebas — otomatis dikonversi ke 62xxx</p>
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="label">Role</label>
@@ -64,9 +64,9 @@ export default function InviteUserPage() {
       </div>
 
       {inviteUrl && (
-        <div className="mt-4 p-4 rounded-xl border border-accent/15 bg-accent/4">
-          <p className="text-sm font-semibold mb-1.5 text-text-primary">Invite Link</p>
-          <p className="text-xs break-all text-accent">{inviteUrl}</p>
+        <div className="mt-4 p-4 rounded-xl border border-[#087CF0]/15 bg-[#087CF0]/[0.04]">
+          <p className="text-sm font-semibold mb-1.5 text-[#202524]">Invite Link</p>
+          <p className="text-xs break-all text-[#087CF0]">{inviteUrl}</p>
           <button onClick={() => navigator.clipboard.writeText(inviteUrl)} className="btn-secondary mt-3 text-xs py-1 px-3">
             Copy to clipboard
           </button>

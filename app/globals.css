@@ -1,28 +1,6 @@
 @import "tailwindcss";
 
-@theme {
-  --color-accent: #087CF0;
-  --color-accent-hover: #0666CC;
-  --color-charcoal: #202524;
-  --color-body: #F2F2F0;
-  --color-card: #FFFFFF;
-  --color-elevated: #F2F2F0;
-  --color-border: #E5E5E2;
-  --color-border-hover: #D0D0CC;
-  --color-text-primary: #202524;
-  --color-text-secondary: #4A4E4A;
-  --color-text-muted: #737773;
-  --color-red: #DC2626;
-  --color-green: #16A34A;
 
-  --spacing-sidebar: 15rem;
-  --spacing-topbar: 3.5rem;
-
-  --radius-card: 12px;
-  --radius-input: 8px;
-}
-
-/* CSS custom props for non-Tailwind usage */
 :root {
   --bg-body: #F2F2F0;
   --bg-card: #FFFFFF;

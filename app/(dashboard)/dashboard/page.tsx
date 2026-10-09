@@ -32,19 +32,19 @@ export default function DashboardPage() {
   const uniqueMembers = [...new Set(projects.flatMap(p => p.members.map(m => m.user.name)))].length
 
   const stats = [
-    { label: 'Total Projects', value: projects.length, sub: `${activeProjects} active`, icon: FolderKanban, color: 'border-l-[#087CF0]', iconBg: 'bg-[#087CF0]/10', iconColor: '#087CF0' },
-    { label: 'Open Issues', value: totalIssues, sub: 'across all projects', icon: AlertCircle, color: 'border-l-[#F97316]', iconBg: 'bg-[#F97316]/10', iconColor: '#F97316' },
-    { label: 'Team Members', value: uniqueMembers, sub: 'across projects', icon: Users, color: 'border-l-[#7C3AED]', iconBg: 'bg-[#7C3AED]/10', iconColor: '#7C3AED' },
-    { label: 'Completed', value: projects.filter(p => p.status === 'COMPLETED').length, sub: 'projects done', icon: CheckCircle2, color: 'border-l-[#15803D]', iconBg: 'bg-[#15803D]/10', iconColor: '#15803D' },
+    { label: 'Total Projects', value: projects.length, sub: `${activeProjects} active`, icon: FolderKanban, border: 'border-l-[#087CF0]', iconBg: 'bg-[#087CF0]/10', iconColor: '#087CF0' },
+    { label: 'Open Issues', value: totalIssues, sub: 'across all projects', icon: AlertCircle, border: 'border-l-[#F97316]', iconBg: 'bg-[#F97316]/10', iconColor: '#F97316' },
+    { label: 'Team Members', value: uniqueMembers, sub: 'across projects', icon: Users, border: 'border-l-[#7C3AED]', iconBg: 'bg-[#7C3AED]/10', iconColor: '#7C3AED' },
+    { label: 'Completed', value: projects.filter(p => p.status === 'COMPLETED').length, sub: 'projects done', icon: CheckCircle2, border: 'border-l-[#15803D]', iconBg: 'bg-[#15803D]/10', iconColor: '#15803D' },
   ]
 
   return (
     <div className="max-w-5xl flex flex-col gap-6">
 
       {/* Welcome header */}
-      <div className="flex items-center justify-between p-6 rounded-2xl bg-charcoal">
+      <div className="flex items-center justify-between p-6 rounded-2xl bg-[#202524]">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shrink-0 bg-accent">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shrink-0 bg-[#087CF0]">
             {(session?.user?.name || 'U')[0].toUpperCase()}
           </div>
           <div>
@@ -58,7 +58,7 @@ export default function DashboardPage() {
             {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
           {isAdmin && (
-            <Link href="/projects/new" className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-accent">
+            <Link href="/projects/new" className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-[#087CF0] no-underline">
               <Plus size={13} /> New Project
             </Link>
           )}
@@ -68,14 +68,14 @@ export default function DashboardPage() {
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-4">
         {stats.map(stat => (
-          <div key={stat.label} className={`card p-5 flex items-center gap-4 border-l-4 ${stat.color}`}>
+          <div key={stat.label} className={`card p-5 flex items-center gap-4 border-l-4 ${stat.border}`}>
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${stat.iconBg}`}>
               <stat.icon size={20} color={stat.iconColor} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-text-primary leading-tight">{stat.value}</p>
-              <p className="text-sm font-semibold text-text-primary mt-0.5">{stat.label}</p>
-              <p className="text-xs text-text-muted mt-0.5">{stat.sub}</p>
+              <p className="text-2xl font-bold text-[#202524] leading-tight">{stat.value}</p>
+              <p className="text-sm font-semibold text-[#202524] mt-0.5">{stat.label}</p>
+              <p className="text-xs text-[#737773] mt-0.5">{stat.sub}</p>
             </div>
           </div>
         ))}
@@ -83,22 +83,22 @@ export default function DashboardPage() {
 
       {/* Recent Projects */}
       <div className="card overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E5E2]">
           <div className="flex items-center gap-2">
-            <TrendingUp size={16} className="text-accent" />
-            <h2 className="text-sm font-semibold text-text-primary">Recent Projects</h2>
+            <TrendingUp size={16} className="text-[#087CF0]" />
+            <h2 className="text-sm font-semibold text-[#202524]">Recent Projects</h2>
           </div>
-          <Link href="/projects" className="flex items-center gap-1 text-xs font-medium text-accent">
+          <Link href="/projects" className="flex items-center gap-1 text-xs font-medium text-[#087CF0] no-underline">
             View all <ArrowRight size={13} />
           </Link>
         </div>
 
         {projects.length === 0 ? (
           <div className="empty-state">
-            <FolderKanban size={32} className="text-border mb-2" />
+            <FolderKanban size={32} className="text-[#E5E5E2] mb-2" />
             <p>No projects yet</p>
             {isAdmin && (
-              <Link href="/projects/new" className="btn-primary mt-3 text-[0.8125rem]">
+              <Link href="/projects/new" className="btn-primary mt-3 text-[13px]">
                 <Plus size={14} /> Create first project
               </Link>
             )}
@@ -109,20 +109,20 @@ export default function DashboardPage() {
               <Link
                 key={project.id}
                 href={`/projects/${project.id}`}
-                className={`flex items-center justify-between px-5 py-4 hover:bg-elevated transition-colors no-underline text-inherit ${i < Math.min(projects.length, 8) - 1 ? 'border-b border-border' : ''}`}
+                className={`flex items-center justify-between px-5 py-4 hover:bg-[#F2F2F0] transition-colors no-underline text-inherit ${i < Math.min(projects.length, 8) - 1 ? 'border-b border-[#E5E5E2]' : ''}`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0 bg-accent">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0 bg-[#087CF0]">
                     {project.name[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate text-text-primary">{project.name}</p>
+                    <p className="text-sm font-semibold truncate text-[#202524]">{project.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="flex items-center gap-1 text-xs text-text-muted">
+                      <span className="flex items-center gap-1 text-xs text-[#737773]">
                         <AlertCircle size={11} /> {project._count.issues} issues
                       </span>
-                      <span className="text-border">·</span>
-                      <span className="flex items-center gap-1 text-xs text-text-muted">
+                      <span className="text-[#E5E5E2]">·</span>
+                      <span className="flex items-center gap-1 text-xs text-[#737773]">
                         <Users size={11} /> {project.members.length} members
                       </span>
                     </div>
@@ -130,11 +130,11 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-3">
                   <StatusBadge value={project.status} />
-                  <span className="hidden sm:flex items-center gap-1 text-xs text-text-muted">
+                  <span className="hidden sm:flex items-center gap-1 text-xs text-[#737773]">
                     <Clock size={11} />
                     {new Date(project.updatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                   </span>
-                  <ArrowRight size={15} className="text-border" />
+                  <ArrowRight size={15} className="text-[#E5E5E2]" />
                 </div>
               </Link>
             ))}
