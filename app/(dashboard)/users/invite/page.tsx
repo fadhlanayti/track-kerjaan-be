@@ -35,7 +35,7 @@ export default function InviteUserPage() {
   return (
     <div style={{ maxWidth: '30rem' }}>
       {/* Page header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3" style={{ marginBottom: '1.5rem' }}>
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--accent)', color: 'white' }}>
           <UserPlus size={20} />
         </div>
@@ -47,33 +47,33 @@ export default function InviteUserPage() {
 
       {/* Form card */}
       <div className="card" style={{ padding: '1.75rem' }}>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
           {/* Name + Email row */}
-          <div className="flex flex-col gap-5 sm:flex-row sm:gap-4">
-            <div className="flex flex-col gap-1.5 flex-1">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label className="label">Name</label>
               <input type="text" value={name} onChange={e => setName(e.target.value)} required className="input" placeholder="John Doe" />
             </div>
-            <div className="flex flex-col gap-1.5 flex-1">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label className="label">Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="input" placeholder="john@email.com" />
             </div>
           </div>
 
           {/* Phone */}
-          <div className="flex flex-col gap-1.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label className="label">No. WhatsApp</label>
             <input
               type="text" value={phone} onChange={e => setPhone(e.target.value)}
               placeholder="087218381744"
               className="input"
             />
-            <p className="text-xs" style={{ color: 'var(--text-muted)', marginTop: '0.125rem' }}>Format bebas — otomatis dikonversi ke 62xxx</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Format bebas — otomatis dikonversi ke 62xxx</p>
           </div>
 
           {/* Role */}
-          <div className="flex flex-col gap-1.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label className="label">Role</label>
             <select value={role} onChange={e => setRole(e.target.value)} className="input">
               <option value="CLIENT">Client</option>
