@@ -86,7 +86,7 @@ export default function InviteUserPage() {
       {inviteUrl && (
         <div
           className="mt-4 p-4 rounded-xl border"
-          style={{ backgroundColor: '#FFF7ED', borderColor: 'rgba(249,115,22,0.2)' }}
+          style={{ backgroundColor: 'rgba(8,124,240,0.04)', borderColor: 'rgba(8,124,240,0.15)' }}
         >
           <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Invite Link</p>
           <p className="text-xs break-all" style={{ color: 'var(--accent)' }}>{inviteUrl}</p>

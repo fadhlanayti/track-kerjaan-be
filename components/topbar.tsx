@@ -54,8 +54,8 @@ export function Topbar() {
   }
 
   const roleBg: Record<string, string> = {
-    ADMIN: 'var(--accent)',
-    DEVELOPER: 'var(--blue)',
+    ADMIN: 'var(--charcoal)',
+    DEVELOPER: 'var(--accent)',
     CLIENT: 'var(--text-muted)',
   }
 
@@ -101,11 +101,11 @@ export function Topbar() {
                   className="px-3 py-2.5 cursor-pointer transition-colors"
                   style={{
                     borderBottom: '1px solid var(--border)',
-                    backgroundColor: n.read ? 'transparent' : '#FFF7ED',
+                    backgroundColor: n.read ? 'transparent' : 'rgba(8,124,240,0.05)',
                   }}
                   onClick={() => markRead(n.id)}
                   onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = 'var(--bg-elevated)' }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = n.read ? 'transparent' : '#FFF7ED' }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.backgroundColor = n.read ? 'transparent' : 'rgba(8,124,240,0.05)' }}
                 >
                   <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{n.title}</p>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{n.message}</p>

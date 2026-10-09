@@ -29,9 +29,9 @@ export default function DashboardPage() {
   const totalIssues = projects.reduce((sum, p) => sum + p._count.issues, 0)
 
   const stats = [
-    { label: 'Active Projects', value: activeProjects, icon: FolderKanban, color: 'var(--accent)', iconBg: 'var(--accent-subtle)' },
-    { label: 'Total Issues', value: totalIssues, icon: AlertCircle, color: 'var(--blue)', iconBg: 'rgba(37,99,235,0.08)' },
-    { label: 'Total Projects', value: projects.length, icon: CheckCircle, color: 'var(--green)', iconBg: 'rgba(22,163,74,0.08)' },
+    { label: 'Total Issues', value: totalIssues, icon: AlertCircle, color: 'var(--orange)', iconBg: 'rgba(255,173,120,0.12)' },
+    { label: 'Active Projects', value: activeProjects, icon: FolderKanban, color: 'var(--accent)', iconBg: 'rgba(8,124,240,0.08)' },
+    { label: 'Total Projects', value: projects.length, icon: CheckCircle, color: 'var(--lime)', iconBg: 'rgba(155,216,59,0.12)' },
   ]
 
   return (

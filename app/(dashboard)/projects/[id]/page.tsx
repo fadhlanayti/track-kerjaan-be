@@ -32,7 +32,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   if (!project) return <div style={{ color: 'var(--red)' }}>Project not found</div>
 
   const avatarBg = (role: string) =>
-    role === 'ADMIN' ? 'var(--accent)' : role === 'DEVELOPER' ? 'var(--blue)' : 'var(--text-muted)'
+    role === 'ADMIN' ? 'var(--charcoal)' : role === 'DEVELOPER' ? 'var(--accent)' : 'var(--text-muted)'
 
   return (
     <div>
