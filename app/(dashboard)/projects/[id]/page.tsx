@@ -46,6 +46,7 @@ interface IssueRef {
 interface TimelineLog {
   id: string
   content: string
+  notes?: string | null
   status?: 'DO' | 'DOING' | 'DONE' | null
   attachments: string[]
   createdAt: string
@@ -195,6 +196,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   // Sub-update / Timeline Log state
   const [activeLogUpdateId, setActiveLogUpdateId] = useState<string | null>(null)
   const [logContent, setLogContent] = useState('')
+  const [logNotes, setLogNotes] = useState('')
   const [logStatus, setLogStatus] = useState<'DO' | 'DOING' | 'DONE' | ''>('')
   const [logImages, setLogImages] = useState<string[]>([])
   const [uploadingLogImg, setUploadingLogImg] = useState(false)
@@ -436,6 +438,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: logContent,
+          notes: logNotes || undefined,
           status: logStatus || undefined,
           attachments: logImages,
         }),
@@ -450,6 +453,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           }
         }))
         setLogContent('')
+        setLogNotes('')
         setLogStatus('')
         setLogImages([])
         setActiveLogUpdateId(null)
@@ -770,8 +774,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                       )}
 
-                      {/* === Unified vertical timeline === */}
-                      <div style={{ position: 'relative', paddingLeft: '1.75rem' }}>
+                      {/* === Unified vertical timeline (scrollable) === */}
+                      <div style={{ position: 'relative', paddingLeft: '1.75rem', maxHeight: '32rem', overflowY: 'auto' }}>
                         {/* Vertical line — runs full height */}
                         <div style={{ position: 'absolute', left: '9px', top: 0, bottom: 0, width: '2px', background: '#e4e4e7' }} />
 
@@ -828,6 +832,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                   ))}
                                 </div>
                               )}
+                              {/* Log notes */}
+                              {log.notes && (
+                                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-zinc-50 border border-zinc-200/60" style={{ marginTop: '0.5rem' }}>
+                                  <StickyNote size={13} className="text-zinc-400 shrink-0 mt-0.5" />
+                                  <p className="text-xs text-zinc-600 whitespace-pre-wrap">{log.notes}</p>
+                                </div>
+                              )}
                               {/* Meta */}
                               <div className="flex items-center gap-2" style={{ marginTop: '0.375rem' }}>
                                 <span className="text-[11px] font-medium text-zinc-500">{log.author.name}</span>
@@ -861,6 +872,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                   onChange={e => setLogContent(e.target.value)}
                                   rows={3}
                                   placeholder="Tulis update progress..."
+                                  className="input text-sm"
+                                  style={{ background: '#fff' }}
+                                />
+                                <textarea
+                                  value={logNotes}
+                                  onChange={e => setLogNotes(e.target.value)}
+                                  rows={2}
+                                  placeholder="Catatan tambahan (opsional)..."
                                   className="input text-sm"
                                   style={{ background: '#fff' }}
                                 />
@@ -908,7 +927,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     <input ref={logFileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleLogImageUpload} />
                                   </div>
                                   <div className="flex gap-1.5">
-                                    <button type="button" onClick={() => { setActiveLogUpdateId(null); setLogContent(''); setLogStatus(''); setLogImages([]) }} className="btn-secondary text-xs py-1 px-3">
+                                    <button type="button" onClick={() => { setActiveLogUpdateId(null); setLogContent(''); setLogNotes(''); setLogStatus(''); setLogImages([]) }} className="btn-secondary text-xs py-1 px-3">
                                       Batal
                                     </button>
                                     <button type="button" disabled={submittingLog || !logContent.trim()} onClick={() => handleAddLog(up.id)} className="btn-primary text-xs py-1 px-3">
@@ -921,7 +940,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             ) : (
                               <button
                                 type="button"
-                                onClick={() => { setActiveLogUpdateId(up.id); setLogContent(''); setLogStatus(''); setLogImages([]) }}
+                                onClick={() => { setActiveLogUpdateId(up.id); setLogContent(''); setLogNotes(''); setLogStatus(''); setLogImages([]) }}
                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0071E3] hover:text-blue-700 cursor-pointer bg-transparent border-none p-0"
                               >
                                 <Plus size={14} /> Tambah Update

@@ -28,7 +28,7 @@ export async function POST(
   }
 
   const body = await req.json()
-  const { content, status, attachments } = body
+  const { content, notes, status, attachments } = body
 
   if (!content || !content.trim()) {
     return NextResponse.json({ error: 'Keterangan log progres wajib diisi' }, { status: 400 })
@@ -40,6 +40,7 @@ export async function POST(
       projectUpdateId: updateId,
       authorId: user.id,
       content: content.trim(),
+      notes: notes?.trim() || null,
       status: status || null,
       attachments: Array.isArray(attachments) ? attachments : [],
     },
