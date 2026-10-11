@@ -611,20 +611,21 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
           {/* List of Updates */}
           {updates.length === 0 ? (
-            <div className="card p-8 sm:p-10 flex flex-col items-center justify-center text-center min-h-[14rem]">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0071E3] flex items-center justify-center mb-3">
-                <Layers size={26} />
+            <div className="card flex flex-col items-center justify-center text-center" style={{ padding: '3.5rem 2rem', minHeight: '20rem', gap: '0.75rem' }}>
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 text-[#0071E3] flex items-center justify-center" style={{ marginBottom: '0.5rem' }}>
+                <Layers size={30} />
               </div>
-              <p className="text-sm font-bold text-zinc-900">Belum ada update progress</p>
-              <p className="text-xs text-zinc-500 mt-1 max-w-sm">
+              <p className="text-base font-bold text-zinc-900">Belum ada update progress</p>
+              <p className="text-sm text-zinc-500" style={{ maxWidth: '26rem', lineHeight: '1.6' }}>
                 Developer dapat mendokumentasikan fitur atau perbaikan yang selesai dikerjakan di sini.
               </p>
               {isDev && (
                 <button
                   onClick={() => setShowUpdateModal(true)}
-                  className="btn-primary text-xs mt-4"
+                  className="btn-primary"
+                  style={{ marginTop: '0.75rem' }}
                 >
-                  <Plus size={14} /> Mulai Update Pertama
+                  <Plus size={16} /> Mulai Update Pertama
                 </button>
               )}
             </div>
