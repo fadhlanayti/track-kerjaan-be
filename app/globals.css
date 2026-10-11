@@ -213,13 +213,12 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .sidebar-overlay.show { display: block; }
 
 .topbar {
-  position: fixed; top: 0; left: 0; right: 0;
+  position: sticky; top: 0; left: 0; right: 0;
   height: var(--topbar-height);
   background: var(--accent); border-bottom: none;
   z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 0 1.25rem;
 }
 .main-area {
-  margin-top: var(--topbar-height);
   min-height: calc(100vh - var(--topbar-height));
   padding: 1.25rem;
   display: flex;
@@ -231,7 +230,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 @media (min-width: 768px) {
   .sidebar { transform: translateX(0) !important; }
   .sidebar-overlay { display: none !important; }
-  .topbar { left: var(--sidebar-width); }
+  .topbar { margin-left: var(--sidebar-width); }
   .main-area { margin-left: var(--sidebar-width); min-height: calc(100vh - var(--topbar-height)); padding: 1.75rem 2rem; align-items: stretch; }
   .hamburger { display: none; }
 }
