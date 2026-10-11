@@ -198,8 +198,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [logContent, setLogContent] = useState('')
   const [logNotes, setLogNotes] = useState('')
   const [logStatus, setLogStatus] = useState<'DO' | 'DOING' | 'DONE' | ''>('')
-  const [logImages, setLogImages] = useState<string[]>([])
-  const [uploadingLogImg, setUploadingLogImg] = useState(false)
+  const [logPendingFiles, setLogPendingFiles] = useState<{ file: File; preview: string }[]>([])
   const [submittingLog, setSubmittingLog] = useState(false)
   const logFileInputRef = useRef<HTMLInputElement>(null)
 
@@ -433,6 +432,16 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     if (!logContent.trim()) return
     setSubmittingLog(true)
     try {
+      // Upload pending files to R2 on submit
+      const uploadedUrls: string[] = []
+      for (const { file } of logPendingFiles) {
+        const formData = new FormData()
+        formData.append('file', file)
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        const data = await res.json()
+        if (data.url) uploadedUrls.push(data.url)
+      }
+
       const res = await fetch(`/api/projects/${id}/updates/${updateId}/logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -440,23 +449,23 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           content: logContent,
           notes: logNotes || undefined,
           status: logStatus || undefined,
-          attachments: logImages,
+          attachments: uploadedUrls,
         }),
       })
       if (res.ok) {
         const data = await res.json()
+        // Revoke blob URLs to free memory
+        logPendingFiles.forEach(({ preview }) => URL.revokeObjectURL(preview))
         setUpdates(prev => prev.map(u => {
           if (u.id !== updateId) return u
-          return {
-            ...data.update,
-            timelineLogs: data.update.timelineLogs ?? [],
-          }
+          return { ...data.update, timelineLogs: data.update.timelineLogs ?? [] }
         }))
         setLogContent('')
         setLogNotes('')
         setLogStatus('')
-        setLogImages([])
+        setLogPendingFiles([])
         setActiveLogUpdateId(null)
+        if (logFileInputRef.current) logFileInputRef.current.value = ''
       }
     } catch (e) {
       console.error(e)
@@ -465,24 +474,16 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  async function handleLogImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  // Just create blob preview — no upload yet
+  function handleLogImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files
     if (!files || files.length === 0) return
-    setUploadingLogImg(true)
-    try {
-      for (const file of Array.from(files)) {
-        const formData = new FormData()
-        formData.append('file', file)
-        const res = await fetch('/api/upload', { method: 'POST', body: formData })
-        const data = await res.json()
-        if (data.url) setLogImages(prev => [...prev, data.url])
-      }
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setUploadingLogImg(false)
-      if (logFileInputRef.current) logFileInputRef.current.value = ''
-    }
+    const newFiles = Array.from(files).map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }))
+    setLogPendingFiles(prev => [...prev, ...newFiles])
+    if (logFileInputRef.current) logFileInputRef.current.value = ''
   }
 
   // Submit Issue from Progress Update
@@ -883,14 +884,17 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                   className="input text-sm"
                                   style={{ background: '#fff' }}
                                 />
-                                {logImages.length > 0 && (
+                                {logPendingFiles.length > 0 && (
                                   <div className="flex flex-wrap gap-2">
-                                    {logImages.map((url, i) => (
+                                    {logPendingFiles.map((item, i) => (
                                       <div key={i} className="relative group">
-                                        <img src={url} alt="" className="w-20 h-16 object-cover rounded-lg border border-black/5 shadow-sm" />
+                                        <img src={item.preview} alt="" className="w-20 h-16 object-cover rounded-lg border border-black/5 shadow-sm" />
                                         <button
                                           type="button"
-                                          onClick={() => setLogImages(prev => prev.filter((_, idx) => idx !== i))}
+                                          onClick={() => {
+                                            URL.revokeObjectURL(item.preview)
+                                            setLogPendingFiles(prev => prev.filter((_, idx) => idx !== i))
+                                          }}
                                           className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-none cursor-pointer p-0 shadow"
                                         >
                                           <X size={10} />
@@ -918,16 +922,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     <button
                                       type="button"
                                       onClick={() => logFileInputRef.current?.click()}
-                                      disabled={uploadingLogImg}
                                       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 hover:bg-violet-200 text-violet-700 transition-colors border-none cursor-pointer"
                                     >
-                                      {uploadingLogImg ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
+                                      <ImageIcon size={13} />
                                       Foto
                                     </button>
                                     <input ref={logFileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleLogImageUpload} />
                                   </div>
                                   <div className="flex gap-1.5">
-                                    <button type="button" onClick={() => { setActiveLogUpdateId(null); setLogContent(''); setLogNotes(''); setLogStatus(''); setLogImages([]) }} className="btn-secondary text-xs py-1 px-3">
+                                    <button type="button" onClick={() => { logPendingFiles.forEach(f => URL.revokeObjectURL(f.preview)); setActiveLogUpdateId(null); setLogContent(''); setLogNotes(''); setLogStatus(''); setLogPendingFiles([]) }} className="btn-secondary text-xs py-1 px-3">
                                       Batal
                                     </button>
                                     <button type="button" disabled={submittingLog || !logContent.trim()} onClick={() => handleAddLog(up.id)} className="btn-primary text-xs py-1 px-3">
@@ -940,7 +943,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             ) : (
                               <button
                                 type="button"
-                                onClick={() => { setActiveLogUpdateId(up.id); setLogContent(''); setLogNotes(''); setLogStatus(''); setLogImages([]) }}
+                                onClick={() => { setActiveLogUpdateId(up.id); setLogContent(''); setLogNotes(''); setLogStatus(''); setLogPendingFiles([]) }}
                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0071E3] hover:text-blue-700 cursor-pointer bg-transparent border-none p-0"
                               >
                                 <Plus size={14} /> Tambah Update
