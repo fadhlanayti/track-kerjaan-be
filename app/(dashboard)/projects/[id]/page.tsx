@@ -934,8 +934,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
                       {/* Connected Issues */}
                       {up.issues && up.issues.length > 0 && (
-                        <div className="pt-3 border-t border-zinc-100 ml-2">
-                          <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
+                        <div className="border-t border-zinc-100 ml-2" style={{ paddingTop: '1rem', marginTop: '0.25rem' }}>
+                          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block" style={{ marginBottom: '0.75rem' }}>
                             Issues Terkait ({up.issues.length})
                           </span>
                           <div className="flex flex-col gap-1.5">
