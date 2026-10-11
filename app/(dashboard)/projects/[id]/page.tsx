@@ -1,24 +1,86 @@
 'use client'
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useRef } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { AlertCircle, MessageSquare, Users, ArrowRight, UserPlus, X, Check } from 'lucide-react'
+import {
+  AlertCircle,
+  MessageSquare,
+  Users,
+  ArrowRight,
+  UserPlus,
+  X,
+  Check,
+  Plus,
+  Image as ImageIcon,
+  Send,
+  StickyNote,
+  Clock,
+  Sparkles,
+  Loader2,
+  Bug,
+  CheckCircle2,
+  Layers,
+  Trash2,
+  Edit2,
+  ChevronDown,
+  ChevronRight
+} from 'lucide-react'
 import { StatusBadge } from '@/components/status-badge'
+import { getSocket } from '@/lib/socket-client'
+import { ProjectChatWidget } from '@/components/project-chat-widget'
 
 interface Member {
   user: { id: string; name: string; email: string; role: string }
   role: string
 }
 
+interface IssueRef {
+  id: string
+  title: string
+  status: string
+  priority: string
+  createdAt: string
+}
+
+interface TimelineLog {
+  id: string
+  content: string
+  status?: 'DO' | 'DOING' | 'DONE' | null
+  attachments: string[]
+  createdAt: string
+  author: { id: string; name: string; role: string; avatar?: string }
+}
+
+interface ProjectUpdate {
+  id: string
+  title: string
+  content: string | null
+  notes: string | null
+  status: 'DO' | 'DOING' | 'DONE'
+  attachments: string[]
+  createdAt: string
+  author: { id: string; name: string; role: string; avatar?: string }
+  assignedTo?: { id: string; name: string; role: string; avatar?: string } | null
+  assignedToId?: string | null
+  issues: IssueRef[]
+  timelineLogs?: TimelineLog[]
+}
+
 interface Project {
-  id: string; name: string; description: string | null; status: string
+  id: string
+  name: string
+  description: string | null
+  status: string
   _count: { issues: number }
   members: Member[]
   createdBy: { id: string; name: string }
 }
 
 interface User {
-  id: string; name: string; email: string; role: string
+  id: string
+  name: string
+  email: string
+  role: string
 }
 
 const roleStyle: Record<string, { avatar: string; badge: string }> = {
@@ -38,14 +100,103 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const { id } = use(params)
   const { data: session } = useSession()
   const [project, setProject] = useState<Project | null>(null)
+  const [updates, setUpdates] = useState<ProjectUpdate[]>([])
   const [loading, setLoading] = useState(true)
   const [allUsers, setAllUsers] = useState<User[]>([])
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [expandedUpdateIds, setExpandedUpdateIds] = useState<Record<string, boolean>>({})
+
+  function toggleUpdateExpand(updateId: string) {
+    setExpandedUpdateIds(prev => ({
+      ...prev,
+      [updateId]: !prev[updateId],
+    }))
+  }
+
+  // Member management state
   const [showAddMember, setShowAddMember] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState('')
   const [selectedRole, setSelectedRole] = useState<'DEVELOPER' | 'CLIENT' | 'PM'>('DEVELOPER')
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState('')
 
+  // Create / Edit Update state (For Developers)
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null)
+  const [updateTitle, setUpdateTitle] = useState('')
+  const [updateContent, setUpdateContent] = useState('')
+  const [updateNotes, setUpdateNotes] = useState('')
+  const [updateStatus, setUpdateStatus] = useState<'DO' | 'DOING' | 'DONE'>('DOING')
+  const [updateAssigneeId, setUpdateAssigneeId] = useState('')
+  const [updateImages, setUpdateImages] = useState<string[]>([])
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [submittingUpdate, setSubmittingUpdate] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Auto remove from R2 helper
+  async function deleteR2Image(url: string) {
+    try {
+      await fetch('/api/upload', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
+    } catch (e) {
+      console.error('Failed to delete image from R2', e)
+    }
+  }
+
+  function startEditUpdate(up: ProjectUpdate) {
+    setEditingUpdateId(up.id)
+    setUpdateTitle(up.title)
+    setUpdateContent(up.content || '')
+    setUpdateNotes(up.notes || '')
+    setUpdateStatus(up.status)
+    setUpdateAssigneeId(up.assignedToId || '')
+    setUpdateImages(up.attachments || [])
+    setShowUpdateModal(true)
+  }
+
+  async function cancelUpdateModal() {
+    // Delete any newly uploaded images if canceling a new update
+    if (!editingUpdateId && updateImages.length > 0) {
+      updateImages.forEach(url => deleteR2Image(url))
+    }
+    setEditingUpdateId(null)
+    setUpdateTitle('')
+    setUpdateContent('')
+    setUpdateNotes('')
+    setUpdateImages([])
+    setShowUpdateModal(false)
+  }
+
+  async function cancelIssueModal() {
+    if (issueImages.length > 0) {
+      issueImages.forEach(url => deleteR2Image(url))
+    }
+    setIssueTitle('')
+    setIssueDescription('')
+    setIssueImages([])
+    setIssueModalUpdate(null)
+  }
+
+  // Create Issue Modal state
+  const [issueModalUpdate, setIssueModalUpdate] = useState<ProjectUpdate | null>(null)
+  const [issueTitle, setIssueTitle] = useState('')
+  const [issueDescription, setIssueDescription] = useState('')
+  const [issuePriority, setIssuePriority] = useState('MEDIUM')
+  const [issueImages, setIssueImages] = useState<string[]>([])
+  const [uploadingIssueImg, setUploadingIssueImg] = useState(false)
+  const [submittingIssue, setSubmittingIssue] = useState(false)
+  const issueFileInputRef = useRef<HTMLInputElement>(null)
+
+  // Sub-update / Timeline Log state
+  const [activeLogUpdateId, setActiveLogUpdateId] = useState<string | null>(null)
+  const [logContent, setLogContent] = useState('')
+  const [logStatus, setLogStatus] = useState<'DO' | 'DOING' | 'DONE' | ''>('')
+  const [submittingLog, setSubmittingLog] = useState(false)
+
+  // Fetch project details & updates
   function fetchProject() {
     fetch(`/api/projects/${id}`)
       .then(r => r.json())
@@ -53,11 +204,78 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       .catch(() => setLoading(false))
   }
 
+  function fetchUpdates() {
+    fetch(`/api/projects/${id}/updates`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setUpdates(data)
+      })
+      .catch(() => {})
+  }
+
   useEffect(() => {
     fetchProject()
+    fetchUpdates()
   }, [id])
 
+  // Socket.IO Realtime integration
+  useEffect(() => {
+    if (!id) return
+    const socket = getSocket()
+    socket.emit('join:project', {
+      projectId: id,
+      userId: session?.user?.id,
+      userName: session?.user?.name,
+    })
+
+    function handleNewUpdate(newUpdate: ProjectUpdate) {
+      setUpdates(prev => [newUpdate, ...prev])
+    }
+
+    function handleStatusUpdate(updatedRecord: ProjectUpdate) {
+      setUpdates(prev => prev.map(u => u.id === updatedRecord.id ? updatedRecord : u))
+    }
+
+    function handleDeleteUpdate(deleted: { id: string }) {
+      setUpdates(prev => prev.filter(u => u.id !== deleted.id))
+    }
+
+    function handleNewIssue(newIssue: any) {
+      fetchProject()
+      fetchUpdates()
+    }
+
+    function handleUpdateLog(data: { updateId: string, log: TimelineLog }) {
+      setUpdates(prev => prev.map(up => {
+        if (up.id === data.updateId) {
+          const exists = up.timelineLogs?.find(l => l.id === data.log.id)
+          if (exists) return up
+          return {
+            ...up,
+            timelineLogs: [data.log, ...(up.timelineLogs || [])]
+          }
+        }
+        return up
+      }))
+    }
+
+    socket.on('project:update:new', handleNewUpdate)
+    socket.on('project:update:status', handleStatusUpdate)
+    socket.on('project:update:delete', handleDeleteUpdate)
+    socket.on('issue:new', handleNewIssue)
+    socket.on('project:update:log', handleUpdateLog)
+
+    return () => {
+      socket.off('project:update:new', handleNewUpdate)
+      socket.off('project:update:status', handleStatusUpdate)
+      socket.off('project:update:delete', handleDeleteUpdate)
+      socket.off('issue:new', handleNewIssue)
+      socket.off('project:update:log', handleUpdateLog)
+    }
+  }, [id, session])
+
   const isAdmin = session?.user?.role === 'ADMIN'
+  const isDev = session?.user?.role === 'DEVELOPER' || isAdmin || project?.members.some(m => m.user.id === session?.user?.id && (m.role === 'DEVELOPER' || m.role === 'PM'))
 
   useEffect(() => {
     if (!isAdmin) return
@@ -88,116 +306,620 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     setAdding(false)
   }
 
+  // Handle Multiple Image Upload to Cloudflare R2
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>, target: 'update' | 'issue') {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const fileList = Array.from(files)
+
+    if (target === 'update') setUploadingImage(true)
+    else setUploadingIssueImg(true)
+
+    try {
+      const uploadedUrls: string[] = []
+      for (const file of fileList) {
+        const formData = new FormData()
+        formData.append('file', file)
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+        const data = await res.json()
+        if (data.url) uploadedUrls.push(data.url)
+      }
+
+      if (target === 'update') {
+        setUpdateImages(prev => [...prev, ...uploadedUrls])
+      } else {
+        setIssueImages(prev => [...prev, ...uploadedUrls])
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      if (target === 'update') setUploadingImage(false)
+      else setUploadingIssueImg(false)
+      if (e.target) e.target.value = ''
+    }
+  }
+
+  // Submit Progress Update (Developer)
+  async function handleCreateUpdate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!updateTitle.trim()) return
+    setSubmittingUpdate(true)
+
+    try {
+      const isEditing = !!editingUpdateId
+      const res = await fetch(`/api/projects/${id}/updates`, {
+        method: isEditing ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...(isEditing ? { updateId: editingUpdateId } : {}),
+          title: updateTitle,
+          content: updateContent,
+          notes: updateNotes,
+          status: updateStatus,
+          assignedToId: updateAssigneeId || undefined,
+          attachments: updateImages,
+        }),
+      })
+
+      if (res.ok) {
+        if (isEditing) {
+          const updated = await res.json()
+          setUpdates(prev => prev.map(u => u.id === editingUpdateId ? updated : u))
+        } else {
+          fetchUpdates()
+        }
+
+        setEditingUpdateId(null)
+        setUpdateTitle('')
+        setUpdateContent('')
+        setUpdateNotes('')
+        setUpdateImages([])
+        setShowUpdateModal(false)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSubmittingUpdate(false)
+    }
+  }
+
+  // Quick update status from card
+  async function handleQuickStatusChange(updateId: string, newStatus: 'DO' | 'DOING' | 'DONE') {
+    try {
+      const res = await fetch(`/api/projects/${id}/updates`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updateId, status: newStatus }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setUpdates(prev => prev.map(u => u.id === updateId ? updated : u))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  // Delete progress update
+  async function handleDeleteUpdate(updateId: string) {
+    if (!window.confirm('Yakin ingin menghapus progress update ini?')) return
+    try {
+      const res = await fetch(`/api/projects/${id}/updates`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updateId }),
+      })
+      if (res.ok) {
+        setUpdates(prev => prev.filter(u => u.id !== updateId))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  // Add timeline log to progress update
+  async function handleAddLog(updateId: string) {
+    if (!logContent.trim()) return
+    setSubmittingLog(true)
+    try {
+      const res = await fetch(`/api/projects/${id}/updates/${updateId}/logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: logContent,
+          status: logStatus || undefined,
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        // Optimistic update — socket will also broadcast but we update locally
+        setUpdates(prev => prev.map(u => {
+          if (u.id !== updateId) return u
+          return {
+            ...data.update,
+            timelineLogs: data.update.timelineLogs ?? [],
+          }
+        }))
+        setLogContent('')
+        setLogStatus('')
+        setActiveLogUpdateId(null)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setSubmittingLog(false)
+    }
+  }
+
+  // Submit Issue from Progress Update
+  async function handleCreateIssue(e: React.FormEvent) {
+    e.preventDefault()
+    if (!issueTitle.trim() || !issueModalUpdate) return
+    setSubmittingIssue(true)
+
+    try {
+      const res = await fetch(`/api/projects/${id}/issues`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: issueTitle,
+          description: issueDescription,
+          priority: issuePriority,
+          attachments: issueImages,
+          projectUpdateId: issueModalUpdate.id,
+        }),
+      })
+
+      if (res.ok) {
+        setIssueTitle('')
+        setIssueDescription('')
+        setIssueImages([])
+        setIssueModalUpdate(null)
+        fetchProject()
+        fetchUpdates()
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSubmittingIssue(false)
+    }
+  }
+
   if (loading) return <div className="loading-state">Loading...</div>
   if (!project) return <div style={{ color: 'var(--red)' }}>Project not found</div>
 
-  // Users not yet in project
   const memberIds = new Set(project.members.map(m => m.user.id))
   const availableUsers = allUsers.filter(u => !memberIds.has(u.id))
 
   return (
-    <div className="flex flex-col gap-6" style={{ maxWidth: '900px' }}>
+    <div className="flex flex-col gap-5 sm:gap-6 w-full max-w-5xl mx-auto px-1 sm:px-0">
 
-      {/* Project header */}
-      <div className="rounded-2xl p-5" style={{ backgroundColor: '#202524' }}>
-        <div className="flex items-start justify-between gap-4" style={{ flexWrap: 'wrap', gap: '1rem' }}>
-          <div className="flex items-center gap-4" style={{ minWidth: 0 }}>
-            <div className="flex items-center justify-center text-white text-xl font-bold shrink-0" style={{
-              width: '3.5rem', height: '3.5rem', borderRadius: '0.875rem', backgroundColor: 'var(--accent)'
-            }}>
+      {/* Project Header Banner (Apple Style Frosted/Deep Card) */}
+      <div className="rounded-2xl p-5 sm:p-6 bg-[#1D1D1F] text-white shadow-lg border border-black/10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 sm:gap-4 w-full sm:w-auto">
+            <div className="flex items-center justify-center text-white text-xl sm:text-2xl font-bold shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#0071E3] shadow-md shadow-blue-500/20">
               {project.name[0].toUpperCase()}
             </div>
-            <div style={{ minWidth: 0 }}>
-              <h1 className="text-xl font-bold text-white">{project.name}</h1>
-              {project.description && <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)', marginTop: '0.25rem' }}>{project.description}</p>}
-              <div className="flex items-center gap-4" style={{ marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                <span className="flex items-center gap-1 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  <AlertCircle size={12} /> {project._count.issues} issues
-                </span>
-                <span className="flex items-center gap-1 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  <Users size={12} /> {project.members.length} members
-                </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white truncate">{project.name}</h1>
+                <StatusBadge value={project.status} />
               </div>
+              {project.description && (
+                <p className="text-xs sm:text-sm mt-1 text-zinc-400 line-clamp-2">{project.description}</p>
+              )}
             </div>
           </div>
-          <StatusBadge value={project.status} />
+
+          <div className="flex items-center gap-3 w-full sm:w-auto pt-3 sm:pt-0 border-t border-white/10 sm:border-none justify-between sm:justify-end text-xs text-zinc-300">
+            <span className="flex items-center gap-1.5 font-medium bg-white/10 px-2.5 py-1 rounded-full">
+              <AlertCircle size={13} className="text-orange-400" /> {project._count.issues} Issues
+            </span>
+            <span className="flex items-center gap-1.5 font-medium bg-white/10 px-2.5 py-1 rounded-full">
+              <Layers size={13} className="text-blue-400" /> {updates.length} Updates
+            </span>
+            <span className="flex items-center gap-1.5 font-medium bg-white/10 px-2.5 py-1 rounded-full">
+              <Users size={13} className="text-emerald-400" /> {project.members.length} Members
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Quick links */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+      {/* Quick Navigation Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <Link
           href={`/projects/${id}/issues`}
-          className="card border-l-orange p-5 flex items-center justify-between transition-colors no-underline"
-          style={{ color: 'inherit' }}
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--bg-elevated)' }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = '' }}
+          className="card p-4 sm:p-5 flex items-center justify-between no-underline group hover:border-[#0071E3]/30 transition-all active:scale-[0.99]"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 icon-bg-orange">
-              <AlertCircle size={20} color="#F97316" />
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-orange-50 text-orange-600 border border-orange-100">
+              <AlertCircle size={22} />
             </div>
             <div>
-              <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Issues</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{project._count.issues} total</p>
+              <p className="text-sm font-semibold text-zinc-900 group-hover:text-[#0071E3] transition-colors">Issue Tracker</p>
+              <p className="text-xs text-zinc-500 mt-0.5">{project._count.issues} Total issues</p>
             </div>
           </div>
-          <ArrowRight size={16} style={{ color: 'var(--text-muted)' }} />
+          <ArrowRight size={18} className="text-zinc-400 group-hover:text-zinc-600 group-hover:translate-x-0.5 transition-all" />
         </Link>
 
-        <Link
-          href={`/projects/${id}/chat`}
-          className="card border-l-teal p-5 flex items-center justify-between transition-colors no-underline"
-          style={{ color: 'inherit' }}
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--bg-elevated)' }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = '' }}
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="card p-4 sm:p-5 flex items-center justify-between text-left cursor-pointer group hover:border-[#0071E3]/30 transition-all active:scale-[0.99] border-none"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 icon-bg-teal">
-              <MessageSquare size={20} color="#0E7490" />
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 border border-blue-100">
+              <MessageSquare size={22} />
             </div>
             <div>
-              <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Chat</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Real-time messaging</p>
+              <p className="text-sm font-semibold text-zinc-900 group-hover:text-[#0071E3] transition-colors">Realtime Discussion</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Project live chat channel</p>
             </div>
           </div>
-          <ArrowRight size={16} style={{ color: 'var(--text-muted)' }} />
-        </Link>
+          <ArrowRight size={18} className="text-zinc-400 group-hover:text-zinc-600 group-hover:translate-x-0.5 transition-all" />
+        </button>
       </div>
 
-      {/* Members */}
-      <div className="card overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <Users size={16} style={{ color: 'var(--accent)' }} />
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Team Members</h2>
-          <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>{project.members.length} members</span>
-          {isAdmin && (
-            <button
-              onClick={() => setShowAddMember(!showAddMember)}
-              className="btn-primary text-xs"
-              style={{ padding: '0.375rem 0.75rem', marginLeft: '0.5rem' }}
-            >
-              <UserPlus size={13} />
-              Add
-            </button>
+      {/* Main Content Layout: Progress Updates (Col 1) & Team Members (Col 2) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.8fr_1fr] gap-5 sm:gap-6 items-start">
+
+        {/* Column 1: Progress Updates */}
+        <div className="flex flex-col gap-4 min-w-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles size={18} className="text-[#0071E3]" />
+              <h2 className="text-base font-bold text-zinc-900">Feature Updates & Progress</h2>
+            </div>
+            {isDev && (
+              <button
+                onClick={() => setShowUpdateModal(true)}
+                className="btn-primary text-xs"
+              >
+                <Plus size={14} /> Post Progress
+              </button>
+            )}
+          </div>
+
+          {/* List of Updates */}
+          {updates.length === 0 ? (
+            <div className="card p-8 sm:p-10 flex flex-col items-center justify-center text-center min-h-[14rem]">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0071E3] flex items-center justify-center mb-3">
+                <Layers size={26} />
+              </div>
+              <p className="text-sm font-bold text-zinc-900">Belum ada update progress</p>
+              <p className="text-xs text-zinc-500 mt-1 max-w-sm">
+                Developer dapat mendokumentasikan fitur atau perbaikan yang selesai dikerjakan di sini.
+              </p>
+              {isDev && (
+                <button
+                  onClick={() => setShowUpdateModal(true)}
+                  className="btn-primary text-xs mt-4"
+                >
+                  <Plus size={14} /> Mulai Update Pertama
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3.5">
+              {updates.map(up => (
+                <div key={up.id} className="card p-4 sm:p-5 flex flex-col transition-all">
+
+                  {/* Update Header (Clickable Accordion) */}
+                  <div
+                    onClick={() => toggleUpdateExpand(up.id)}
+                    className="flex items-start justify-between gap-3 cursor-pointer select-none"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="text-zinc-400 hover:text-zinc-700 transition-colors shrink-0">
+                        {expandedUpdateIds[up.id] ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      </div>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 bg-[#0071E3]">
+                        {up.author.name[0].toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs sm:text-sm font-bold text-zinc-900 truncate">{up.title}</span>
+                          <span className="text-[10px] text-zinc-500 font-medium">by {up.author.name}</span>
+                          {up.status && (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                              up.status === 'DONE'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : up.status === 'DOING'
+                                ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                : 'bg-orange-50 text-orange-700 border border-orange-200'
+                            }`}>
+                              {up.status}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-zinc-400 flex items-center gap-1 mt-0.5">
+                          <Clock size={11} /> {new Date(up.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          {up.assignedTo && (
+                            <span className="ml-1 text-zinc-500">· Assigned: {up.assignedTo.name}</span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action: Edit, Lapor Issue & Delete */}
+                    <div
+                      onClick={e => e.stopPropagation()}
+                      className="flex items-center gap-1.5 shrink-0"
+                    >
+                      {(isAdmin || up.author.id === session?.user?.id) && (
+                        <button
+                          onClick={() => startEditUpdate(up)}
+                          className="inline-flex items-center justify-center p-1.5 rounded-full text-zinc-400 hover:text-blue-600 hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-100 cursor-pointer"
+                          title="Edit progress ini"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          setIssueModalUpdate(up)
+                          setIssueTitle(`Issue: ${up.title}`)
+                          setIssueDescription('')
+                          setIssueImages([])
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors border border-amber-200/80 cursor-pointer shrink-0"
+                      >
+                        <Bug size={13} />
+                        <span className="hidden sm:inline">Lapor</span> Issue
+                      </button>
+
+                      {(isAdmin || up.author.id === session?.user?.id) && (
+                        <button
+                          onClick={() => handleDeleteUpdate(up.id)}
+                          className="inline-flex items-center justify-center p-1.5 rounded-full text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100 cursor-pointer"
+                          title="Hapus progress ini"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Collapsible Timeline Detail (Hanya terbuka saat diklik) */}
+                  {expandedUpdateIds[up.id] && (
+                    <div className="mt-4 pt-3.5 border-t border-zinc-100 flex flex-col gap-3.5">
+                      <div className="flex flex-col gap-3.5 pl-3 border-l-2 border-zinc-200 relative ml-2">
+                        <div className="absolute -top-1 -left-1.25 w-2 h-2 rounded-full bg-zinc-300"></div>
+
+                        {/* Status Update Control for Assigned User */}
+                        {isDev && (up.assignedToId === session?.user?.id || isAdmin) && (
+                          <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 p-2 rounded-xl">
+                            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider ml-1">Status:</span>
+                            <div className="flex bg-white rounded-lg border border-slate-200 p-0.5 shadow-sm">
+                              {(['DO', 'DOING', 'DONE'] as const).map(st => {
+                                const isSelected = up.status === st
+                                const activeClass =
+                                  st === 'DO'
+                                    ? 'bg-orange-500 text-white shadow-sm'
+                                    : st === 'DONE'
+                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                    : 'bg-[#0071E3] text-white shadow-sm'
+
+                                return (
+                                  <button
+                                    key={st}
+                                    onClick={() => handleQuickStatusChange(up.id, st)}
+                                    className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                                      isSelected
+                                        ? activeClass
+                                        : 'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100'
+                                    }`}
+                                  >
+                                    {st}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {up.content && (
+                          <p className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed text-zinc-600">
+                            {up.content}
+                          </p>
+                        )}
+
+                        {/* Timeline Logs */}
+                        {up.timelineLogs && up.timelineLogs.length > 0 && (
+                          <div className="flex flex-col gap-0">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">Timeline Log</span>
+                            {[...up.timelineLogs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((log, logIdx) => (
+                              <div key={log.id} className="flex items-start gap-2.5 relative">
+                                {/* Vertical connector line */}
+                                {logIdx < up.timelineLogs!.length - 1 && (
+                                  <div className="absolute left-[7px] top-[18px] bottom-0 w-0.5 bg-zinc-200" />
+                                )}
+                                {/* Timeline dot */}
+                                <div className={`w-3.5 h-3.5 rounded-full border-2 mt-0.5 shrink-0 ${
+                                  log.status === 'DONE' ? 'bg-emerald-500 border-emerald-500' :
+                                  log.status === 'DO' ? 'bg-orange-400 border-orange-400' :
+                                  log.status === 'DOING' ? 'bg-blue-500 border-blue-500' :
+                                  'bg-white border-zinc-300'
+                                }`} />
+                                <div className="flex-1 pb-3.5">
+                                  <p className="text-xs text-zinc-700 leading-relaxed">{log.content}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-[10px] text-zinc-400">{log.author.name}</span>
+                                    <span className="text-[10px] text-zinc-300">·</span>
+                                    <span className="text-[10px] text-zinc-400">
+                                      {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                    {log.status && (
+                                      <>
+                                        <span className="text-[10px] text-zinc-300">·</span>
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                          log.status === 'DONE' ? 'bg-emerald-50 text-emerald-700' :
+                                          log.status === 'DO' ? 'bg-orange-50 text-orange-700' :
+                                          'bg-blue-50 text-blue-700'
+                                        }`}>{log.status}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Add Timeline Log */}
+                        {isDev && (
+                          activeLogUpdateId === up.id ? (
+                            <div className="flex flex-col gap-2 p-3 rounded-xl bg-zinc-50 border border-zinc-200/80">
+                              <textarea
+                                value={logContent}
+                                onChange={e => setLogContent(e.target.value)}
+                                rows={2}
+                                placeholder="Tulis update progress..."
+                                className="input text-xs"
+                                style={{ background: '#fff' }}
+                              />
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex gap-1">
+                                  {(['DO', 'DOING', 'DONE'] as const).map(st => (
+                                    <button
+                                      key={st}
+                                      type="button"
+                                      onClick={() => setLogStatus(logStatus === st ? '' : st)}
+                                      className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
+                                        logStatus === st
+                                          ? st === 'DO' ? 'bg-orange-500 text-white' : st === 'DONE' ? 'bg-emerald-600 text-white' : 'bg-[#0071E3] text-white'
+                                          : 'text-zinc-500 hover:bg-zinc-100'
+                                      }`}
+                                    >
+                                      {st}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="flex gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => { setActiveLogUpdateId(null); setLogContent(''); setLogStatus('') }}
+                                    className="btn-secondary text-[10px] py-1 px-2.5"
+                                  >
+                                    Batal
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={submittingLog || !logContent.trim()}
+                                    onClick={() => handleAddLog(up.id)}
+                                    className="btn-primary text-[10px] py-1 px-2.5"
+                                  >
+                                    {submittingLog ? <Loader2 size={12} className="animate-spin" /> : <Send size={11} />}
+                                    Kirim
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => { setActiveLogUpdateId(up.id); setLogContent(''); setLogStatus('') }}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0071E3] hover:text-blue-700 cursor-pointer bg-transparent border-none p-0"
+                            >
+                              <Plus size={14} /> Tambah Update Log
+                            </button>
+                          )
+                        )}
+                      </div>
+
+                      {/* Optional Notes Box */}
+                      {up.notes && (
+                        <div className="p-3 rounded-xl flex items-start gap-2.5 bg-zinc-50 border border-zinc-200/60 ml-2">
+                          <StickyNote size={15} className="text-zinc-400 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Catatan Tambahan</span>
+                            <p className="text-xs text-zinc-700 mt-0.5 whitespace-pre-wrap">{up.notes}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Image Attachments */}
+                      {up.attachments && up.attachments.length > 0 && (
+                        <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap ml-2">
+                          {up.attachments.map((imgUrl, i) => (
+                            <a key={i} href={imgUrl} target="_blank" rel="noreferrer" className="block relative rounded-xl overflow-hidden border border-black/5 hover:opacity-90 shadow-sm">
+                              <img src={imgUrl} alt="progress preview" className="w-24 h-18 sm:w-28 sm:h-20 object-cover" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Connected Issues */}
+                      {up.issues && up.issues.length > 0 && (
+                        <div className="pt-3 border-t border-zinc-100 ml-2">
+                          <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
+                            Issues Terkait ({up.issues.length})
+                          </span>
+                          <div className="flex flex-col gap-1.5">
+                            {up.issues.map(iss => (
+                              <Link
+                                key={iss.id}
+                                href={`/projects/${id}/issues/${iss.id}`}
+                                className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-colors no-underline text-xs"
+                              >
+                                <span className="font-medium text-zinc-800 truncate mr-2">{iss.title}</span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  iss.status === 'RESOLVED' || iss.status === 'CLOSED'
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-rose-100 text-rose-700'
+                                }`}>
+                                  {iss.status}
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Add member form */}
-        {showAddMember && (
-          <form onSubmit={addMember} style={{
-            padding: '1rem 1.25rem',
-            borderBottom: '1px solid var(--border)',
-            backgroundColor: 'var(--bg-elevated)',
-            display: 'flex', flexDirection: 'column', gap: '0.75rem'
-          }}>
-            <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>Tambah Member</p>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        {/* Column 2: Team Members */}
+        <div className="card overflow-hidden">
+          <div className="flex items-center gap-2 px-4 sm:px-5 py-3.5 border-b border-zinc-100">
+            <Users size={16} className="text-[#0071E3]" />
+            <h2 className="text-sm font-semibold text-zinc-900">Team Members</h2>
+            <span className="text-xs text-zinc-400 ml-auto">{project.members.length}</span>
+            {isAdmin && (
+              <button
+                onClick={() => setShowAddMember(!showAddMember)}
+                className="btn-primary text-xs ml-2"
+                style={{ padding: '0.3rem 0.75rem' }}
+              >
+                <UserPlus size={13} /> Add
+              </button>
+            )}
+          </div>
+
+          {/* Add member form */}
+          {showAddMember && (
+            <form onSubmit={addMember} style={{
+              padding: '1rem',
+              borderBottom: '1px solid var(--border)',
+              backgroundColor: '#FFFFFF',
+              display: 'flex', flexDirection: 'column', gap: '0.75rem'
+            }}>
+              <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>Tambah Member</p>
               <select
                 value={selectedUserId}
                 onChange={e => setSelectedUserId(e.target.value)}
-                className="input"
-                style={{ flex: '1', minWidth: '10rem' }}
+                className="input text-xs"
                 required
               >
                 <option value="">Pilih user...</option>
@@ -208,59 +930,403 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <select
                 value={selectedRole}
                 onChange={e => setSelectedRole(e.target.value as any)}
-                className="input"
-                style={{ width: '8rem' }}
+                className="input text-xs"
               >
                 <option value="DEVELOPER">Developer</option>
                 <option value="CLIENT">Client</option>
                 <option value="PM">PM</option>
               </select>
-              <button type="submit" disabled={adding || !selectedUserId} className="btn-primary">
-                <Check size={14} />
-                {adding ? 'Adding...' : 'Tambah'}
-              </button>
-              <button type="button" onClick={() => { setShowAddMember(false); setAddError('') }} className="btn-secondary">
-                <X size={14} />
-              </button>
-            </div>
-            {addError && <p className="text-xs" style={{ color: 'var(--red)' }}>{addError}</p>}
-            {availableUsers.length === 0 && (
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Semua user sudah jadi member.</p>
-            )}
-          </form>
-        )}
-
-        <div>
-          {project.members.map((m, i) => {
-            const rs = roleStyle[m.role] || roleStyle['CLIENT']
-            const rt = roleTxt[m.role] || roleTxt['CLIENT']
-            return (
-              <div
-                key={m.user.id}
-                className="flex items-center gap-3 px-5 py-3"
-                style={{ borderBottom: i < project.members.length - 1 ? '1px solid var(--border)' : 'none' }}
-              >
-                <div
-                  className="flex items-center justify-center text-sm font-semibold shrink-0"
-                  style={{ width: '2.25rem', height: '2.25rem', borderRadius: '50%', backgroundColor: rs.avatar, color: rt.avatar }}
-                >
-                  {m.user.name[0].toUpperCase()}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{m.user.name}</p>
-                  <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{m.user.email}</p>
-                </div>
-                <span
-                  className="text-xs font-semibold"
-                  style={{ backgroundColor: rs.badge, color: rt.badge, padding: '0.25rem 0.625rem', borderRadius: '0.5rem', whiteSpace: 'nowrap' }}
-                >
-                  {m.role}
-                </span>
+              <div className="flex gap-2">
+                <button type="submit" disabled={adding || !selectedUserId} className="btn-primary text-xs flex-1">
+                  <Check size={14} /> Tambah
+                </button>
+                <button type="button" onClick={() => { setShowAddMember(false); setAddError('') }} className="btn-secondary text-xs">
+                  <X size={14} />
+                </button>
               </div>
-            )
-          })}
+              {addError && <p className="text-xs" style={{ color: 'var(--red)' }}>{addError}</p>}
+            </form>
+          )}
+
+          <div>
+            {project.members.map((m, i) => {
+              const rs = roleStyle[m.role] || roleStyle['CLIENT']
+              const rt = roleTxt[m.role] || roleTxt['CLIENT']
+              return (
+                <div
+                  key={m.user.id}
+                  className="flex items-center gap-3 px-5 py-3"
+                  style={{ borderBottom: i < project.members.length - 1 ? '1px solid var(--border)' : 'none' }}
+                >
+                  <div
+                    className="flex items-center justify-center text-xs font-semibold shrink-0"
+                    style={{ width: '2rem', height: '2rem', borderRadius: '50%', backgroundColor: rs.avatar, color: rt.avatar }}
+                  >
+                    {m.user.name[0].toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>{m.user.name}</p>
+                    <p className="text-[11px] truncate" style={{ color: 'var(--text-muted)' }}>{m.user.email}</p>
+                  </div>
+                  <span
+                    className="text-[10px] font-semibold"
+                    style={{ backgroundColor: rs.badge, color: rt.badge, padding: '0.2rem 0.5rem', borderRadius: '0.375rem' }}
+                  >
+                    {m.role}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         </div>
+
       </div>
+
+      {/* Modal: Post Progress Update (Developer Only) */}
+      {showUpdateModal && (
+        <div className="apple-modal-overlay">
+          <div className="apple-modal-sheet p-5 sm:p-6 relative">
+            <div className="sheet-handle mb-3" />
+            <button
+              onClick={cancelUpdateModal}
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 border-none bg-transparent cursor-pointer transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center gap-3 pb-4 mb-5 border-b border-zinc-100">
+              <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-zinc-900 leading-tight">
+                  {editingUpdateId ? 'Edit Progress Fitur' : 'Update Progress Fitur'}
+                </h3>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  {editingUpdateId ? 'Perbarui detail, catatan, atau status progress fitur.' : 'Catat kemajuan pekerjaan atau fitur yang telah selesai.'}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateUpdate} className="flex flex-col gap-4 overflow-y-auto max-h-[70vh] pr-1">
+              <div>
+                <label className="label text-xs font-semibold mb-2 block">Judul Fitur / Update</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Selesai Integrasi Gateway Pembayaran"
+                  value={updateTitle}
+                  onChange={e => setUpdateTitle(e.target.value)}
+                  required
+                  className="input text-sm"
+                />
+              </div>
+
+              {/* Status Radio Check Chips */}
+              <div>
+                <label className="label text-xs font-semibold mb-1.5 block">Status Progress</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'DO', label: 'DO', desc: 'Belum dimulai', color: 'orange' },
+                    { id: 'DOING', label: 'DOING', desc: 'Sedang dikerjakan', color: 'blue' },
+                    { id: 'DONE', label: 'DONE', desc: 'Selesai', color: 'emerald' },
+                  ].map(s => {
+                    const isSelected = updateStatus === s.id
+                    const selectedStyles =
+                      s.id === 'DO'
+                        ? 'bg-orange-50 border-orange-500 text-orange-700 shadow-sm'
+                        : s.id === 'DONE'
+                        ? 'bg-emerald-50 border-emerald-600 text-emerald-700 shadow-sm'
+                        : 'bg-blue-50 border-[#0071E3] text-[#0071E3] shadow-sm'
+
+                    const checkBg =
+                      s.id === 'DO'
+                        ? 'bg-orange-500 border-orange-500 text-white'
+                        : s.id === 'DONE'
+                        ? 'bg-emerald-600 border-emerald-600 text-white'
+                        : 'bg-[#0071E3] border-[#0071E3] text-white'
+
+                    return (
+                      <button
+                        type="button"
+                        key={s.id}
+                        onClick={() => setUpdateStatus(s.id as any)}
+                        className={`p-2.5 rounded-xl text-left border cursor-pointer transition-all flex flex-col justify-between ${
+                          isSelected
+                            ? selectedStyles
+                            : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100/70'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-xs font-bold">{s.id}</span>
+                          <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${
+                            isSelected ? checkBg : 'border-zinc-300 bg-white'
+                          }`}>
+                            {isSelected && <Check size={10} strokeWidth={3} />}
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-zinc-500 mt-1 truncate">{s.desc}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="label text-xs font-semibold mb-1.5 block">Assignee (Penanggung Jawab)</label>
+                <select
+                  value={updateAssigneeId}
+                  onChange={e => setUpdateAssigneeId(e.target.value)}
+                  className="input text-sm"
+                >
+                  <option value="">Saya sendiri</option>
+                  {project.members.map(m => (
+                    <option key={m.user.id} value={m.user.id}>
+                      {m.user.name} ({m.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="label text-xs font-semibold mb-1.5 block">Keterangan / Rincian Progress</label>
+                <textarea
+                  rows={2}
+                  placeholder="Jelaskan apa saja yang telah dikerjakan..."
+                  value={updateContent}
+                  onChange={e => setUpdateContent(e.target.value)}
+                  className="input text-sm resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="label text-xs font-semibold mb-1.5 block">Notes Tambahan (Opsional)</label>
+                <textarea
+                  rows={2}
+                  placeholder="Catatan teknis, testing guide..."
+                  value={updateNotes}
+                  onChange={e => setUpdateNotes(e.target.value)}
+                  className="input text-sm resize-none"
+                />
+              </div>
+
+              {/* Upload Screenshots */}
+              <div>
+                <label className="label text-xs font-semibold mb-1.5 block">Lampirkan Screenshot / Foto</label>
+                <input
+                  type="file"
+                  multiple
+                  ref={fileInputRef}
+                  onChange={e => handleImageUpload(e, 'update')}
+                  accept="image/*"
+                  className="hidden"
+                />
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    className="btn-secondary text-xs"
+                    style={{ padding: '0.4rem 0.75rem' }}
+                  >
+                    {uploadingImage ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
+                    {uploadingImage ? 'Mengupload...' : 'Pilih Foto'}
+                  </button>
+
+                  {updateImages.map((url, idx) => (
+                    <div key={idx} className="relative w-11 h-11 rounded-lg border border-zinc-200 overflow-hidden group">
+                      <img src={url} alt="thumb" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          deleteR2Image(url)
+                          setUpdateImages(prev => prev.filter((_, i) => i !== idx))
+                        }}
+                        className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-none cursor-pointer"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-2 pt-3 border-t border-zinc-100">
+                <button
+                  type="button"
+                  onClick={cancelUpdateModal}
+                  className="btn-secondary text-xs"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingUpdate || !updateTitle.trim()}
+                  className="btn-primary text-xs"
+                >
+                  {submittingUpdate
+                    ? 'Menyimpan...'
+                    : editingUpdateId
+                    ? 'Simpan Perubahan'
+                    : 'Posting Progress'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Create Issue from Update */}
+      {issueModalUpdate && (
+        <div className="apple-modal-overlay">
+          <div className="apple-modal-sheet p-5 sm:p-6 relative">
+            <div className="sheet-handle mb-3" />
+            <button
+              onClick={cancelIssueModal}
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 border-none bg-transparent cursor-pointer transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center gap-3 pb-4 mb-5 border-b border-zinc-100">
+              <div className="w-9 h-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <Bug size={18} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-zinc-900 leading-tight">Laporkan Issue</h3>
+                <p className="text-xs text-zinc-500 mt-0.5 truncate max-w-[280px] sm:max-w-md">
+                  Mengaitkan ke: <span className="font-semibold text-zinc-800">"{issueModalUpdate.title}"</span>
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateIssue} className="flex flex-col gap-4 overflow-y-auto max-h-[70vh] pr-1">
+              <div>
+                <label className="label text-xs font-semibold mb-2 block">Judul Masalah / Bug</label>
+                <input
+                  type="text"
+                  value={issueTitle}
+                  onChange={e => setIssueTitle(e.target.value)}
+                  required
+                  className="input text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="label text-xs font-semibold mb-1.5 block">Deskripsi Masalah</label>
+                <textarea
+                  rows={3}
+                  placeholder="Jelaskan kendala atau langkah mereproduksi..."
+                  value={issueDescription}
+                  onChange={e => setIssueDescription(e.target.value)}
+                  required
+                  className="input text-sm resize-none"
+                />
+              </div>
+
+              {/* Priority Radio Check Chips */}
+              <div>
+                <label className="label text-xs font-semibold mb-1.5 block">Prioritas</label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[
+                    { id: 'LOW', label: 'Low', color: 'text-zinc-600' },
+                    { id: 'MEDIUM', label: 'Medium', color: 'text-blue-600' },
+                    { id: 'HIGH', label: 'High', color: 'text-amber-600' },
+                    { id: 'URGENT', label: 'Urgent', color: 'text-rose-600' },
+                  ].map(p => {
+                    const isSelected = issuePriority === p.id
+                    return (
+                      <button
+                        type="button"
+                        key={p.id}
+                        onClick={() => setIssuePriority(p.id)}
+                        className={`py-2 px-1 rounded-xl text-center border cursor-pointer transition-all flex flex-col items-center justify-center gap-1 ${
+                          isSelected
+                            ? 'bg-blue-50/70 border-[#0071E3] text-[#0071E3] font-bold shadow-sm'
+                            : 'bg-zinc-50 border-zinc-200 text-zinc-600 hover:bg-zinc-100/70'
+                        }`}
+                      >
+                        <span className={`text-xs ${p.color}`}>{p.label}</span>
+                        <div className={`w-3 h-3 rounded-full flex items-center justify-center border ${
+                          isSelected ? 'bg-[#0071E3] border-[#0071E3] text-white' : 'border-zinc-300 bg-white'
+                        }`}>
+                          {isSelected && <Check size={8} strokeWidth={3} />}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="label text-xs font-semibold mb-1.5 block">Lampirkan Bukti / Gambar Issue</label>
+                <input
+                  type="file"
+                  multiple
+                  ref={issueFileInputRef}
+                  onChange={e => handleImageUpload(e, 'issue')}
+                  accept="image/*"
+                  className="hidden"
+                />
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => issueFileInputRef.current?.click()}
+                    disabled={uploadingIssueImg}
+                    className="btn-secondary text-xs"
+                    style={{ padding: '0.4rem 0.75rem' }}
+                  >
+                    {uploadingIssueImg ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
+                    {uploadingIssueImg ? 'Mengupload...' : 'Pilih Foto'}
+                  </button>
+
+                  {issueImages.map((url, idx) => (
+                    <div key={idx} className="relative w-11 h-11 rounded-lg border border-zinc-200 overflow-hidden group">
+                      <img src={url} alt="issue thumb" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          deleteR2Image(url)
+                          setIssueImages(prev => prev.filter((_, i) => i !== idx))
+                        }}
+                        className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-none cursor-pointer"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-2 pt-3 border-t border-zinc-100">
+                <button
+                  type="button"
+                  onClick={cancelIssueModal}
+                  className="btn-secondary text-xs"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingIssue || !issueTitle.trim()}
+                  className="btn-primary text-xs"
+                >
+                  {submittingIssue ? 'Mengirim...' : 'Kirim Issue'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Chat Widget */}
+      <ProjectChatWidget
+        projectId={id}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
+
     </div>
   )
 }
