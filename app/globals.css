@@ -220,10 +220,11 @@ input[type="checkbox"] { accent-color: var(--accent); }
 }
 .main-area {
   margin-top: var(--topbar-height);
+  min-height: calc(100vh - var(--topbar-height));
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 }
 .hamburger { display: flex; }
 
@@ -231,7 +232,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
   .sidebar { transform: translateX(0) !important; }
   .sidebar-overlay { display: none !important; }
   .topbar { left: var(--sidebar-width); }
-  .main-area { margin-left: var(--sidebar-width); padding: 1.75rem 2rem; }
+  .main-area { margin-left: var(--sidebar-width); min-height: calc(100vh - var(--topbar-height)); padding: 1.75rem 2rem; align-items: stretch; }
   .hamburger { display: none; }
 }
 
