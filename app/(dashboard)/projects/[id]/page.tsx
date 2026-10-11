@@ -1061,8 +1061,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       {/* Modal: Post Progress Update (Developer Only) */}
       {showUpdateModal && (
         <div className="apple-modal-overlay">
-          <div className="apple-modal-sheet p-5 sm:p-6 relative">
-            <div className="sheet-handle mb-3" />
+          <div className="apple-modal-sheet relative" style={{ padding: '1.75rem 1.75rem 1.5rem' }}>
             <button
               onClick={cancelUpdateModal}
               className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 border-none bg-transparent cursor-pointer transition-colors"
@@ -1070,7 +1069,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <X size={18} />
             </button>
 
-            <div className="flex items-center gap-3 pb-4 mb-5 border-b border-zinc-100">
+            <div className="flex items-center gap-3 pb-5 mb-5 border-b border-zinc-100">
               <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                 <Sparkles size={18} />
               </div>
@@ -1255,8 +1254,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       {/* Modal: Create Issue from Update */}
       {issueModalUpdate && (
         <div className="apple-modal-overlay">
-          <div className="apple-modal-sheet p-5 sm:p-6 relative">
-            <div className="sheet-handle mb-3" />
+          <div className="apple-modal-sheet relative" style={{ padding: '1.75rem 1.75rem 1.5rem' }}>
             <button
               onClick={cancelIssueModal}
               className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 border-none bg-transparent cursor-pointer transition-colors"
@@ -1264,7 +1262,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <X size={18} />
             </button>
 
-            <div className="flex items-center gap-3 pb-4 mb-5 border-b border-zinc-100">
+            <div className="flex items-center gap-3 pb-5 mb-5 border-b border-zinc-100">
               <div className="w-9 h-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                 <Bug size={18} />
               </div>
