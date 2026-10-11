@@ -730,107 +730,120 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                           </p>
                         )}
 
-                        {/* Timeline Logs */}
-                        {up.timelineLogs && up.timelineLogs.length > 0 && (
-                          <div className="flex flex-col gap-0">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">Timeline Log</span>
-                            {[...up.timelineLogs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((log, logIdx) => (
-                              <div key={log.id} className="flex items-start gap-2.5 relative">
-                                {/* Vertical connector line */}
-                                {logIdx < up.timelineLogs!.length - 1 && (
-                                  <div className="absolute left-[7px] top-[18px] bottom-0 w-0.5 bg-zinc-200" />
-                                )}
-                                {/* Timeline dot */}
-                                <div className={`w-3.5 h-3.5 rounded-full border-2 mt-0.5 shrink-0 ${
-                                  log.status === 'DONE' ? 'bg-emerald-500 border-emerald-500' :
-                                  log.status === 'DO' ? 'bg-orange-400 border-orange-400' :
-                                  log.status === 'DOING' ? 'bg-blue-500 border-blue-500' :
-                                  'bg-white border-zinc-300'
-                                }`} />
-                                <div className="flex-1 pb-3.5">
-                                  <p className="text-xs text-zinc-700 leading-relaxed">{log.content}</p>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-[10px] text-zinc-400">{log.author.name}</span>
-                                    <span className="text-[10px] text-zinc-300">·</span>
-                                    <span className="text-[10px] text-zinc-400">
-                                      {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                    {log.status && (
-                                      <>
-                                        <span className="text-[10px] text-zinc-300">·</span>
-                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                          log.status === 'DONE' ? 'bg-emerald-50 text-emerald-700' :
-                                          log.status === 'DO' ? 'bg-orange-50 text-orange-700' :
-                                          'bg-blue-50 text-blue-700'
-                                        }`}>{log.status}</span>
-                                      </>
-                                    )}
+                        {/* Timeline Logs - Horizontal Stepper */}
+                        {((up.timelineLogs && up.timelineLogs.length > 0) || isDev) && (
+                          <div className="flex flex-col gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Timeline</span>
+                            <div className="flex items-start overflow-x-auto pb-2 gap-0">
+                              {/* Head node — the main progress item itself */}
+                              <div className="flex items-center shrink-0">
+                                <div className="flex flex-col items-center">
+                                  <div className={`w-3 h-3 rounded-full shrink-0 ${
+                                    up.status === 'DONE' ? 'bg-emerald-500' :
+                                    up.status === 'DO' ? 'bg-orange-400' :
+                                    'bg-[#0071E3]'
+                                  }`} />
+                                  <div className="mt-1.5 max-w-[90px] text-center">
+                                    <p className="text-[10px] font-semibold text-zinc-800 leading-tight line-clamp-2">{up.title}</p>
+                                    <span className="text-[9px] text-zinc-400">{up.author.name}</span>
                                   </div>
                                 </div>
                               </div>
-                            ))}
+
+                              {/* Log entries */}
+                              {[...( up.timelineLogs || [])].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map(log => (
+                                <div key={log.id} className="flex items-center shrink-0">
+                                  {/* Connector line */}
+                                  <div className="w-8 h-0.5 bg-zinc-200 shrink-0 mt-[-22px]" />
+                                  {/* Node */}
+                                  <div className="flex flex-col items-center">
+                                    <div className={`w-3 h-3 rounded-full shrink-0 ${
+                                      log.status === 'DONE' ? 'bg-emerald-500' :
+                                      log.status === 'DO' ? 'bg-orange-400' :
+                                      log.status === 'DOING' ? 'bg-[#0071E3]' :
+                                      'bg-zinc-300'
+                                    }`} />
+                                    <div className="mt-1.5 max-w-[90px] text-center">
+                                      <p className="text-[10px] text-zinc-700 leading-tight line-clamp-2">{log.content}</p>
+                                      <span className="text-[9px] text-zinc-400">{log.author.name}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+
+                              {/* Add button node */}
+                              {isDev && (
+                                activeLogUpdateId === up.id ? null : (
+                                  <div className="flex items-center shrink-0">
+                                    <div className="w-8 h-0.5 bg-zinc-200 shrink-0 mt-[-22px]" />
+                                    <div className="flex flex-col items-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => { setActiveLogUpdateId(up.id); setLogContent(''); setLogStatus('') }}
+                                        className="w-3 h-3 rounded-full bg-zinc-200 hover:bg-[#0071E3] transition-colors flex items-center justify-center cursor-pointer border-none p-0"
+                                        title="Tambah log update"
+                                      >
+                                        <Plus size={8} className="text-zinc-500 hover:text-white" />
+                                      </button>
+                                      <span className="text-[9px] text-zinc-400 mt-1.5">Tambah</span>
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </div>
+
+                            {/* Inline log form */}
+                            {isDev && activeLogUpdateId === up.id && (
+                              <div className="flex flex-col gap-2 p-3 rounded-xl bg-zinc-50 border border-zinc-200/80 mt-1">
+                                <textarea
+                                  value={logContent}
+                                  onChange={e => setLogContent(e.target.value)}
+                                  rows={2}
+                                  placeholder="Tulis update progress..."
+                                  className="input text-xs"
+                                  style={{ background: '#fff' }}
+                                />
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex gap-1">
+                                    {(['DO', 'DOING', 'DONE'] as const).map(st => (
+                                      <button
+                                        key={st}
+                                        type="button"
+                                        onClick={() => setLogStatus(logStatus === st ? '' : st)}
+                                        className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
+                                          logStatus === st
+                                            ? st === 'DO' ? 'bg-orange-500 text-white' : st === 'DONE' ? 'bg-emerald-600 text-white' : 'bg-[#0071E3] text-white'
+                                            : 'text-zinc-500 hover:bg-zinc-100'
+                                        }`}
+                                      >
+                                        {st}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <div className="flex gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => { setActiveLogUpdateId(null); setLogContent(''); setLogStatus('') }}
+                                      className="btn-secondary text-[10px] py-1 px-2.5"
+                                    >
+                                      Batal
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={submittingLog || !logContent.trim()}
+                                      onClick={() => handleAddLog(up.id)}
+                                      className="btn-primary text-[10px] py-1 px-2.5"
+                                    >
+                                      {submittingLog ? <Loader2 size={12} className="animate-spin" /> : <Send size={11} />}
+                                      Kirim
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 
-                        {/* Add Timeline Log */}
-                        {isDev && (
-                          activeLogUpdateId === up.id ? (
-                            <div className="flex flex-col gap-2 p-3 rounded-xl bg-zinc-50 border border-zinc-200/80">
-                              <textarea
-                                value={logContent}
-                                onChange={e => setLogContent(e.target.value)}
-                                rows={2}
-                                placeholder="Tulis update progress..."
-                                className="input text-xs"
-                                style={{ background: '#fff' }}
-                              />
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex gap-1">
-                                  {(['DO', 'DOING', 'DONE'] as const).map(st => (
-                                    <button
-                                      key={st}
-                                      type="button"
-                                      onClick={() => setLogStatus(logStatus === st ? '' : st)}
-                                      className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
-                                        logStatus === st
-                                          ? st === 'DO' ? 'bg-orange-500 text-white' : st === 'DONE' ? 'bg-emerald-600 text-white' : 'bg-[#0071E3] text-white'
-                                          : 'text-zinc-500 hover:bg-zinc-100'
-                                      }`}
-                                    >
-                                      {st}
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className="flex gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => { setActiveLogUpdateId(null); setLogContent(''); setLogStatus('') }}
-                                    className="btn-secondary text-[10px] py-1 px-2.5"
-                                  >
-                                    Batal
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={submittingLog || !logContent.trim()}
-                                    onClick={() => handleAddLog(up.id)}
-                                    className="btn-primary text-[10px] py-1 px-2.5"
-                                  >
-                                    {submittingLog ? <Loader2 size={12} className="animate-spin" /> : <Send size={11} />}
-                                    Kirim
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => { setActiveLogUpdateId(up.id); setLogContent(''); setLogStatus('') }}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0071E3] hover:text-blue-700 cursor-pointer bg-transparent border-none p-0"
-                            >
-                              <Plus size={14} /> Tambah Update Log
-                            </button>
-                          )
-                        )}
                       </div>
 
                       {/* Optional Notes Box */}
