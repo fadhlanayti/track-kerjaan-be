@@ -775,11 +775,30 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         {/* Vertical line — runs full height */}
                         <div style={{ position: 'absolute', left: '9px', top: 0, bottom: 0, width: '2px', background: '#e4e4e7' }} />
 
-                        {/* Node: Content (desc) */}
-                        {up.content && (
+                        {/* Node: Content (desc) + foto progress + catatan */}
+                        {(up.content || (up.attachments && up.attachments.length > 0) || up.notes) && (
                           <div style={{ position: 'relative', paddingBottom: '1.25rem' }}>
                             <div style={{ position: 'absolute', left: '-1.75rem', top: '4px', width: '10px', height: '10px', borderRadius: '50%', background: '#a1a1aa' }} />
-                            <p className="text-sm whitespace-pre-wrap leading-relaxed text-zinc-700">{up.content}</p>
+                            {up.content && (
+                              <p className="text-sm whitespace-pre-wrap leading-relaxed text-zinc-700">{up.content}</p>
+                            )}
+                            {/* Foto progress — di bawah desc */}
+                            {up.attachments && up.attachments.length > 0 && (
+                              <div className="flex gap-2 flex-wrap" style={{ marginTop: up.content ? '0.625rem' : 0 }}>
+                                {up.attachments.map((imgUrl, i) => (
+                                  <a key={i} href={imgUrl} target="_blank" rel="noreferrer" className="block rounded-xl overflow-hidden border border-black/5 hover:opacity-90 shadow-sm">
+                                    <img src={imgUrl} alt="progress" className="w-24 sm:w-28 object-cover" style={{ height: '4.5rem' }} />
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                            {/* Catatan — di bawah foto */}
+                            {up.notes && (
+                              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-zinc-50 border border-zinc-200/60" style={{ marginTop: '0.625rem' }}>
+                                <StickyNote size={13} className="text-zinc-400 shrink-0 mt-0.5" />
+                                <p className="text-xs text-zinc-600 whitespace-pre-wrap">{up.notes}</p>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -912,57 +931,32 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         )}
                       </div>
 
-                      {/* === Footer: Notes, Attachments, Issues — below timeline === */}
-                      <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {/* Notes */}
-                        {up.notes && (
-                          <div className="p-3 rounded-xl flex items-start gap-2.5 bg-zinc-50 border border-zinc-200/60">
-                            <StickyNote size={15} className="text-zinc-400 shrink-0 mt-0.5" />
-                            <div>
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Catatan</span>
-                              <p className="text-xs text-zinc-700 mt-0.5 whitespace-pre-wrap">{up.notes}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Image Attachments */}
-                        {up.attachments && up.attachments.length > 0 && (
-                          <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
-                            {up.attachments.map((imgUrl, i) => (
-                              <a key={i} href={imgUrl} target="_blank" rel="noreferrer" className="block relative rounded-xl overflow-hidden border border-black/5 hover:opacity-90 shadow-sm">
-                                <img src={imgUrl} alt="progress preview" className="w-24 h-18 sm:w-28 sm:h-20 object-cover" />
-                              </a>
+                      {/* === Footer: Issues only — below timeline === */}
+                      {up.issues && up.issues.length > 0 && (
+                        <div style={{ marginTop: '0.75rem', borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
+                          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block" style={{ marginBottom: '0.5rem' }}>
+                            Issues Terkait ({up.issues.length})
+                          </span>
+                          <div className="flex flex-col gap-1.5">
+                            {up.issues.map(iss => (
+                              <Link
+                                key={iss.id}
+                                href={`/projects/${id}/issues/${iss.id}`}
+                                className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-colors no-underline text-xs"
+                              >
+                                <span className="font-medium text-zinc-800 truncate mr-2">{iss.title}</span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  iss.status === 'RESOLVED' || iss.status === 'CLOSED'
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-rose-100 text-rose-700'
+                                }`}>
+                                  {iss.status}
+                                </span>
+                              </Link>
                             ))}
                           </div>
-                        )}
-
-                        {/* Connected Issues */}
-                        {up.issues && up.issues.length > 0 && (
-                          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
-                            <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block" style={{ marginBottom: '0.5rem' }}>
-                              Issues Terkait ({up.issues.length})
-                            </span>
-                            <div className="flex flex-col gap-1.5">
-                              {up.issues.map(iss => (
-                                <Link
-                                  key={iss.id}
-                                  href={`/projects/${id}/issues/${iss.id}`}
-                                  className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-colors no-underline text-xs"
-                                >
-                                  <span className="font-medium text-zinc-800 truncate mr-2">{iss.title}</span>
-                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                    iss.status === 'RESOLVED' || iss.status === 'CLOSED'
-                                      ? 'bg-emerald-100 text-emerald-700'
-                                      : 'bg-rose-100 text-rose-700'
-                                  }`}>
-                                    {iss.status}
-                                  </span>
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                     </div>
                   )}
