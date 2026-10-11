@@ -31,7 +31,6 @@ export function ProjectChatWidget({ projectId, isOpen, onClose }: { projectId: s
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
-  const [sending, setSending] = useState(false)
   const [pendingFiles, setPendingFiles] = useState<{ file: File; preview: string }[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -81,20 +80,43 @@ export function ProjectChatWidget({ projectId, isOpen, onClose }: { projectId: s
   async function sendMessage(e: React.FormEvent) {
     e.preventDefault()
     if (!input.trim() && pendingFiles.length === 0) return
-    setSending(true)
 
+    const content = input.trim() || ''
+    const previews = pendingFiles.map(f => f.preview)
+    const filesToUpload = [...pendingFiles]
+
+    // Optimistic: show message immediately with blob previews
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg: Message = {
+      id: tempId,
+      content,
+      attachments: previews,
+      sender: {
+        id: session?.user?.id || '',
+        name: session?.user?.name || '',
+        avatar: null,
+      },
+      createdAt: new Date().toISOString(),
+    }
+    setMessages(prev => [...prev, optimisticMsg])
+    setInput('')
+    setPendingFiles([])
+
+    // Upload + save in background
     try {
-      // Upload pending files to R2 on send
       const uploadedUrls: string[] = []
-      for (const { file } of pendingFiles) {
-        const formData = new FormData()
-        formData.append('file', file)
-        const res = await fetch('/api/upload', { method: 'POST', body: formData })
-        const data = await res.json()
-        if (data.url) uploadedUrls.push(data.url)
+      for (const { file } of filesToUpload) {
+        try {
+          const formData = new FormData()
+          formData.append('file', file)
+          const res = await fetch('/api/upload', { method: 'POST', body: formData })
+          if (res.ok) {
+            const data = await res.json()
+            if (data.url) uploadedUrls.push(data.url)
+          }
+        } catch { /* skip failed uploads */ }
       }
 
-      const content = input.trim() || ''
       const res = await fetch(`/api/projects/${projectId}/chat/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,15 +127,14 @@ export function ProjectChatWidget({ projectId, isOpen, onClose }: { projectId: s
         const message = await res.json()
         const socket = getSocket()
         socket.emit('message:send', { ...message, projectId })
-        setMessages(prev => prev.some(m => m.id === message.id) ? prev : [...prev, message])
-        setInput('')
-        pendingFiles.forEach(f => URL.revokeObjectURL(f.preview))
-        setPendingFiles([])
+        // Replace optimistic message with real one
+        setMessages(prev => prev.map(m => m.id === tempId ? message : m))
       }
+
+      // Revoke blob URLs
+      filesToUpload.forEach(f => URL.revokeObjectURL(f.preview))
     } catch (err) {
       console.error(err)
-    } finally {
-      setSending(false)
     }
   }
 
@@ -236,14 +257,10 @@ export function ProjectChatWidget({ projectId, isOpen, onClose }: { projectId: s
           />
           <button
             type="submit"
-            disabled={sending || (!input.trim() && pendingFiles.length === 0)}
+            disabled={!input.trim() && pendingFiles.length === 0}
             className="w-8 h-8 rounded-full bg-[#F97316] text-white flex items-center justify-center border-none cursor-pointer shrink-0 disabled:opacity-40 transition-opacity"
           >
-            {sending ? (
-              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <Send size={14} />
-            )}
+            <Send size={14} />
           </button>
         </form>
       </div>
