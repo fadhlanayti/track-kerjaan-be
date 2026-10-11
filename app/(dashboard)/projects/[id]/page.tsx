@@ -863,7 +863,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     type="button"
                                     onClick={() => logFileInputRef.current?.click()}
                                     disabled={uploadingLogImg}
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-zinc-200/70 hover:bg-zinc-200 text-zinc-600 transition-colors border-none cursor-pointer"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 hover:bg-violet-200 text-violet-700 transition-colors border-none cursor-pointer"
                                   >
                                     {uploadingLogImg ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
                                     Foto
