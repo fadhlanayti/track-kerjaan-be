@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, use, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import {
   AlertCircle,
@@ -98,6 +99,7 @@ const roleTxt: Record<string, { avatar: string; badge: string }> = {
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const router = useRouter()
   const { data: session } = useSession()
   const [project, setProject] = useState<Project | null>(null)
   const [updates, setUpdates] = useState<ProjectUpdate[]>([])
@@ -519,6 +521,21 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const memberIds = new Set(project.members.map(m => m.user.id))
   const availableUsers = allUsers.filter(u => !memberIds.has(u.id))
 
+  async function handleDeleteProject() {
+    if (!window.confirm('Yakin ingin menghapus project ini? Semua data terkait (issues, progress, chat) akan ikut terhapus.')) return
+    try {
+      const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        router.push('/projects')
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || 'Gagal menghapus project')
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-5 sm:gap-6 w-full px-1 sm:px-0">
 
@@ -550,6 +567,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <span className="flex items-center gap-1.5 font-medium bg-white/10 px-2.5 py-1 rounded-full">
               <Users size={13} className="text-emerald-400" /> {project.members.length} Members
             </span>
+            {isAdmin && (
+              <button
+                onClick={handleDeleteProject}
+                className="flex items-center gap-1.5 font-medium bg-red-500/20 hover:bg-red-500/40 text-red-300 hover:text-red-200 px-2.5 py-1 rounded-full transition-colors border-none cursor-pointer text-xs"
+                title="Hapus project"
+              >
+                <Trash2 size={12} /> Hapus
+              </button>
+            )}
           </div>
         </div>
       </div>
