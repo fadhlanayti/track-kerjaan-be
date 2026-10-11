@@ -737,253 +737,233 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                   </div>
 
-                  {/* Collapsible Timeline Detail (Hanya terbuka saat diklik) */}
+                  {/* Collapsible Detail — Clean Unified Timeline */}
                   {expandedUpdateIds[up.id] && (
-                    <div className="mt-4 pt-3.5 border-t border-zinc-100 flex flex-col gap-3.5">
-                      <div className="flex flex-col gap-3.5 pl-3 border-l-2 border-zinc-200 relative ml-2">
-                        <div className="absolute -top-1 -left-1.25 w-2 h-2 rounded-full bg-zinc-300"></div>
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
 
-                        {/* Status Update Control for Assigned User */}
-                        {isDev && (up.assignedToId === session?.user?.id || isAdmin) && (
-                          <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 p-2 rounded-xl">
-                            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider ml-1">Status:</span>
-                            <div className="flex bg-white rounded-lg border border-slate-200 p-0.5 shadow-sm">
-                              {(['DO', 'DOING', 'DONE'] as const).map(st => {
-                                const isSelected = up.status === st
-                                const activeClass =
-                                  st === 'DO'
-                                    ? 'bg-orange-500 text-white shadow-sm'
-                                    : st === 'DONE'
-                                    ? 'bg-emerald-600 text-white shadow-sm'
-                                    : 'bg-[#0071E3] text-white shadow-sm'
-
-                                return (
-                                  <button
-                                    key={st}
-                                    onClick={() => handleQuickStatusChange(up.id, st)}
-                                    className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
-                                      isSelected
-                                        ? activeClass
-                                        : 'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100'
-                                    }`}
-                                  >
-                                    {st}
-                                  </button>
-                                )
-                              })}
-                            </div>
+                      {/* Status toggle */}
+                      {isDev && (up.assignedToId === session?.user?.id || isAdmin) && (
+                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 p-2 rounded-xl" style={{ marginBottom: '1rem' }}>
+                          <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider ml-1">Status:</span>
+                          <div className="flex bg-white rounded-lg border border-slate-200 p-0.5 shadow-sm">
+                            {(['DO', 'DOING', 'DONE'] as const).map(st => {
+                              const isSelected = up.status === st
+                              const activeClass =
+                                st === 'DO'
+                                  ? 'bg-orange-500 text-white shadow-sm'
+                                  : st === 'DONE'
+                                  ? 'bg-emerald-600 text-white shadow-sm'
+                                  : 'bg-[#0071E3] text-white shadow-sm'
+                              return (
+                                <button
+                                  key={st}
+                                  onClick={() => handleQuickStatusChange(up.id, st)}
+                                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                                    isSelected ? activeClass : 'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100'
+                                  }`}
+                                >
+                                  {st}
+                                </button>
+                              )
+                            })}
                           </div>
-                        )}
+                        </div>
+                      )}
 
+                      {/* === Unified vertical timeline === */}
+                      <div style={{ position: 'relative', paddingLeft: '1.75rem' }}>
+                        {/* Vertical line — runs full height */}
+                        <div style={{ position: 'absolute', left: '9px', top: 0, bottom: 0, width: '2px', background: '#e4e4e7' }} />
+
+                        {/* Node: Content (desc) */}
                         {up.content && (
-                          <p className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed text-zinc-600">
-                            {up.content}
-                          </p>
-                        )}
-
-                        {/* Timeline Logs */}
-                        {up.timelineLogs && up.timelineLogs.length > 0 && (
-                          <div className="flex flex-col gap-0" style={{ marginTop: '0.75rem' }}>
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400" style={{ marginBottom: '1rem' }}>Update Log</span>
-                            {[...up.timelineLogs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((log, logIdx) => (
-                              <div key={log.id} className="flex items-start gap-3 relative">
-                                {/* Vertical connector line */}
-                                {logIdx < up.timelineLogs!.length - 1 && (
-                                  <div className="absolute left-[9px] top-[22px] bottom-0 w-0.5 bg-zinc-200" />
-                                )}
-                                {/* Timeline dot — bigger, solid color */}
-                                <div className={`w-5 h-5 rounded-full shrink-0 mt-0.5 flex items-center justify-center ${
-                                  log.status === 'DONE' ? 'bg-emerald-500' :
-                                  log.status === 'DO' ? 'bg-orange-400' :
-                                  log.status === 'DOING' ? 'bg-[#0071E3]' :
-                                  'bg-zinc-300'
-                                }`}>
-                                  {log.status === 'DONE' && (
-                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                  )}
-                                </div>
-                                <div className="flex-1 pb-4">
-                                  <p className="text-sm text-zinc-800 leading-relaxed">{log.content}</p>
-                                  {/* Images in log */}
-                                  {log.attachments && log.attachments.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                      {log.attachments.map((imgUrl: string, i: number) => (
-                                        <a key={i} href={imgUrl} target="_blank" rel="noreferrer" className="block rounded-xl overflow-hidden border border-black/5 hover:opacity-90 shadow-sm">
-                                          <img src={imgUrl} alt={`log ${i+1}`} className="w-28 h-20 sm:w-36 sm:h-24 object-cover" />
-                                        </a>
-                                      ))}
-                                    </div>
-                                  )}
-                                  <div className="flex items-center gap-2 mt-1.5">
-                                    <span className="text-[11px] font-medium text-zinc-500">{log.author.name}</span>
-                                    <span className="text-[10px] text-zinc-300">·</span>
-                                    <span className="text-[11px] text-zinc-400">
-                                      {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                    {log.status && (
-                                      <>
-                                        <span className="text-[10px] text-zinc-300">·</span>
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                          log.status === 'DONE' ? 'bg-emerald-100 text-emerald-700' :
-                                          log.status === 'DO' ? 'bg-orange-100 text-orange-700' :
-                                          'bg-blue-100 text-blue-700'
-                                        }`}>{log.status}</span>
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                          <div style={{ position: 'relative', paddingBottom: '1.25rem' }}>
+                            <div style={{ position: 'absolute', left: '-1.75rem', top: '4px', width: '10px', height: '10px', borderRadius: '50%', background: '#a1a1aa' }} />
+                            <p className="text-sm whitespace-pre-wrap leading-relaxed text-zinc-700">{up.content}</p>
                           </div>
                         )}
 
-                        {/* Add Timeline Log */}
-                        {isDev && (
-                          activeLogUpdateId === up.id ? (
-                            <div className="flex flex-col gap-2.5 p-3.5 rounded-xl mt-1" style={{ background: 'rgba(0,113,227,0.04)', border: '1.5px solid rgba(0,113,227,0.2)' }}>
-                              <textarea
-                                value={logContent}
-                                onChange={e => setLogContent(e.target.value)}
-                                rows={3}
-                                placeholder="Tulis update progress..."
-                                className="input text-sm"
-                                style={{ background: '#fff' }}
-                              />
-
-                              {/* Image previews */}
-                              {logImages.length > 0 && (
-                                <div className="flex flex-wrap gap-2">
-                                  {logImages.map((url, i) => (
-                                    <div key={i} className="relative group">
-                                      <img src={url} alt="" className="w-20 h-16 object-cover rounded-lg border border-black/5 shadow-sm" />
-                                      <button
-                                        type="button"
-                                        onClick={() => setLogImages(prev => prev.filter((_, idx) => idx !== i))}
-                                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-none cursor-pointer p-0 shadow"
-                                      >
-                                        <X size={10} />
-                                      </button>
-                                    </div>
+                        {/* Nodes: Timeline Logs */}
+                        {up.timelineLogs && up.timelineLogs.length > 0 && (
+                          [...up.timelineLogs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map(log => (
+                            <div key={log.id} style={{ position: 'relative', paddingBottom: '1.25rem' }}>
+                              {/* Dot */}
+                              <div style={{
+                                position: 'absolute', left: '-1.75rem', top: '3px', width: '12px', height: '12px', borderRadius: '50%',
+                                background: log.status === 'DONE' ? '#22c55e' : log.status === 'DO' ? '#fb923c' : log.status === 'DOING' ? '#0071E3' : '#d4d4d8',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              }}>
+                                {log.status === 'DONE' && (
+                                  <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                )}
+                              </div>
+                              {/* Content */}
+                              <p className="text-sm text-zinc-800 leading-relaxed">{log.content}</p>
+                              {/* Log images */}
+                              {log.attachments && log.attachments.length > 0 && (
+                                <div className="flex flex-wrap gap-2" style={{ marginTop: '0.5rem' }}>
+                                  {log.attachments.map((imgUrl: string, i: number) => (
+                                    <a key={i} href={imgUrl} target="_blank" rel="noreferrer" className="block rounded-xl overflow-hidden border border-black/5 hover:opacity-90 shadow-sm">
+                                      <img src={imgUrl} alt={`log ${i+1}`} className="w-28 h-20 sm:w-36 sm:h-24 object-cover" />
+                                    </a>
                                   ))}
                                 </div>
                               )}
-
-                              <div className="flex items-center justify-between gap-2 flex-wrap">
-                                <div className="flex items-center gap-1.5">
-                                  {/* Status chips */}
-                                  {(['DO', 'DOING', 'DONE'] as const).map(st => (
-                                    <button
-                                      key={st}
-                                      type="button"
-                                      onClick={() => setLogStatus(logStatus === st ? '' : st)}
-                                      className={`px-2.5 py-1 text-xs font-bold rounded-full transition-all ${
-                                        logStatus === st
-                                          ? st === 'DO' ? 'bg-orange-500 text-white' : st === 'DONE' ? 'bg-emerald-500 text-white' : 'bg-[#0071E3] text-white'
-                                          : 'text-zinc-500 bg-zinc-200/70 hover:bg-zinc-200'
-                                      }`}
-                                    >
-                                      {st}
-                                    </button>
-                                  ))}
-                                  {/* Image upload button — bigger & labeled */}
-                                  <button
-                                    type="button"
-                                    onClick={() => logFileInputRef.current?.click()}
-                                    disabled={uploadingLogImg}
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 hover:bg-violet-200 text-violet-700 transition-colors border-none cursor-pointer"
-                                  >
-                                    {uploadingLogImg ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
-                                    Foto
-                                  </button>
-                                  <input
-                                    ref={logFileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={handleLogImageUpload}
-                                  />
-                                </div>
-                                <div className="flex gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => { setActiveLogUpdateId(null); setLogContent(''); setLogStatus(''); setLogImages([]) }}
-                                    className="btn-secondary text-xs py-1 px-3"
-                                  >
-                                    Batal
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={submittingLog || !logContent.trim()}
-                                    onClick={() => handleAddLog(up.id)}
-                                    className="btn-primary text-xs py-1 px-3"
-                                  >
-                                    {submittingLog ? <Loader2 size={13} className="animate-spin" /> : <Send size={12} />}
-                                    Kirim
-                                  </button>
-                                </div>
+                              {/* Meta */}
+                              <div className="flex items-center gap-2" style={{ marginTop: '0.375rem' }}>
+                                <span className="text-[11px] font-medium text-zinc-500">{log.author.name}</span>
+                                <span className="text-[10px] text-zinc-300">·</span>
+                                <span className="text-[11px] text-zinc-400">
+                                  {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                {log.status && (
+                                  <>
+                                    <span className="text-[10px] text-zinc-300">·</span>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                      log.status === 'DONE' ? 'bg-emerald-100 text-emerald-700' :
+                                      log.status === 'DO' ? 'bg-orange-100 text-orange-700' :
+                                      'bg-blue-100 text-blue-700'
+                                    }`}>{log.status}</span>
+                                  </>
+                                )}
                               </div>
                             </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => { setActiveLogUpdateId(up.id); setLogContent(''); setLogStatus(''); setLogImages([]) }}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0071E3] hover:text-blue-700 cursor-pointer bg-transparent border-none p-0 mt-1"
-                            >
-                              <Plus size={14} /> Tambah Update Log
-                            </button>
-                          )
+                          ))
+                        )}
+
+                        {/* Node: Add log form or button */}
+                        {isDev && (
+                          <div style={{ position: 'relative', paddingBottom: '0.5rem' }}>
+                            <div style={{ position: 'absolute', left: '-1.75rem', top: '3px', width: '12px', height: '12px', borderRadius: '50%', background: activeLogUpdateId === up.id ? '#0071E3' : '#e4e4e7' }} />
+                            {activeLogUpdateId === up.id ? (
+                              <div className="flex flex-col gap-2.5 p-3.5 rounded-xl" style={{ background: 'rgba(0,113,227,0.04)', border: '1.5px solid rgba(0,113,227,0.2)' }}>
+                                <textarea
+                                  value={logContent}
+                                  onChange={e => setLogContent(e.target.value)}
+                                  rows={3}
+                                  placeholder="Tulis update progress..."
+                                  className="input text-sm"
+                                  style={{ background: '#fff' }}
+                                />
+                                {logImages.length > 0 && (
+                                  <div className="flex flex-wrap gap-2">
+                                    {logImages.map((url, i) => (
+                                      <div key={i} className="relative group">
+                                        <img src={url} alt="" className="w-20 h-16 object-cover rounded-lg border border-black/5 shadow-sm" />
+                                        <button
+                                          type="button"
+                                          onClick={() => setLogImages(prev => prev.filter((_, idx) => idx !== i))}
+                                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-none cursor-pointer p-0 shadow"
+                                        >
+                                          <X size={10} />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <div className="flex items-center gap-1.5">
+                                    {(['DO', 'DOING', 'DONE'] as const).map(st => (
+                                      <button
+                                        key={st}
+                                        type="button"
+                                        onClick={() => setLogStatus(logStatus === st ? '' : st)}
+                                        className={`px-2.5 py-1 text-xs font-bold rounded-full transition-all ${
+                                          logStatus === st
+                                            ? st === 'DO' ? 'bg-orange-500 text-white' : st === 'DONE' ? 'bg-emerald-500 text-white' : 'bg-[#0071E3] text-white'
+                                            : 'text-zinc-500 bg-zinc-200/70 hover:bg-zinc-200'
+                                        }`}
+                                      >
+                                        {st}
+                                      </button>
+                                    ))}
+                                    <button
+                                      type="button"
+                                      onClick={() => logFileInputRef.current?.click()}
+                                      disabled={uploadingLogImg}
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 hover:bg-violet-200 text-violet-700 transition-colors border-none cursor-pointer"
+                                    >
+                                      {uploadingLogImg ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
+                                      Foto
+                                    </button>
+                                    <input ref={logFileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleLogImageUpload} />
+                                  </div>
+                                  <div className="flex gap-1.5">
+                                    <button type="button" onClick={() => { setActiveLogUpdateId(null); setLogContent(''); setLogStatus(''); setLogImages([]) }} className="btn-secondary text-xs py-1 px-3">
+                                      Batal
+                                    </button>
+                                    <button type="button" disabled={submittingLog || !logContent.trim()} onClick={() => handleAddLog(up.id)} className="btn-primary text-xs py-1 px-3">
+                                      {submittingLog ? <Loader2 size={13} className="animate-spin" /> : <Send size={12} />}
+                                      Kirim
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => { setActiveLogUpdateId(up.id); setLogContent(''); setLogStatus(''); setLogImages([]) }}
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0071E3] hover:text-blue-700 cursor-pointer bg-transparent border-none p-0"
+                              >
+                                <Plus size={14} /> Tambah Update
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
 
-                      {/* Optional Notes Box */}
-                      {up.notes && (
-                        <div className="p-3 rounded-xl flex items-start gap-2.5 bg-zinc-50 border border-zinc-200/60 ml-2">
-                          <StickyNote size={15} className="text-zinc-400 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Catatan Tambahan</span>
-                            <p className="text-xs text-zinc-700 mt-0.5 whitespace-pre-wrap">{up.notes}</p>
+                      {/* === Footer: Notes, Attachments, Issues — below timeline === */}
+                      <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {/* Notes */}
+                        {up.notes && (
+                          <div className="p-3 rounded-xl flex items-start gap-2.5 bg-zinc-50 border border-zinc-200/60">
+                            <StickyNote size={15} className="text-zinc-400 shrink-0 mt-0.5" />
+                            <div>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Catatan</span>
+                              <p className="text-xs text-zinc-700 mt-0.5 whitespace-pre-wrap">{up.notes}</p>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Image Attachments */}
-                      {up.attachments && up.attachments.length > 0 && (
-                        <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap ml-2">
-                          {up.attachments.map((imgUrl, i) => (
-                            <a key={i} href={imgUrl} target="_blank" rel="noreferrer" className="block relative rounded-xl overflow-hidden border border-black/5 hover:opacity-90 shadow-sm">
-                              <img src={imgUrl} alt="progress preview" className="w-24 h-18 sm:w-28 sm:h-20 object-cover" />
-                            </a>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Connected Issues */}
-                      {up.issues && up.issues.length > 0 && (
-                        <div className="border-t border-zinc-100 ml-2" style={{ paddingTop: '1rem', marginTop: '0.25rem' }}>
-                          <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block" style={{ marginBottom: '0.75rem' }}>
-                            Issues Terkait ({up.issues.length})
-                          </span>
-                          <div className="flex flex-col gap-1.5">
-                            {up.issues.map(iss => (
-                              <Link
-                                key={iss.id}
-                                href={`/projects/${id}/issues/${iss.id}`}
-                                className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-colors no-underline text-xs"
-                              >
-                                <span className="font-medium text-zinc-800 truncate mr-2">{iss.title}</span>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  iss.status === 'RESOLVED' || iss.status === 'CLOSED'
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : 'bg-rose-100 text-rose-700'
-                                }`}>
-                                  {iss.status}
-                                </span>
-                              </Link>
+                        {/* Image Attachments */}
+                        {up.attachments && up.attachments.length > 0 && (
+                          <div className="flex gap-2 overflow-x-auto pb-1 flex-wrap">
+                            {up.attachments.map((imgUrl, i) => (
+                              <a key={i} href={imgUrl} target="_blank" rel="noreferrer" className="block relative rounded-xl overflow-hidden border border-black/5 hover:opacity-90 shadow-sm">
+                                <img src={imgUrl} alt="progress preview" className="w-24 h-18 sm:w-28 sm:h-20 object-cover" />
+                              </a>
                             ))}
                           </div>
-                        </div>
-                      )}
+                        )}
+
+                        {/* Connected Issues */}
+                        {up.issues && up.issues.length > 0 && (
+                          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
+                            <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block" style={{ marginBottom: '0.5rem' }}>
+                              Issues Terkait ({up.issues.length})
+                            </span>
+                            <div className="flex flex-col gap-1.5">
+                              {up.issues.map(iss => (
+                                <Link
+                                  key={iss.id}
+                                  href={`/projects/${id}/issues/${iss.id}`}
+                                  className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 hover:bg-zinc-100 transition-colors no-underline text-xs"
+                                >
+                                  <span className="font-medium text-zinc-800 truncate mr-2">{iss.title}</span>
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    iss.status === 'RESOLVED' || iss.status === 'CLOSED'
+                                      ? 'bg-emerald-100 text-emerald-700'
+                                      : 'bg-rose-100 text-rose-700'
+                                  }`}>
+                                    {iss.status}
+                                  </span>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                     </div>
                   )}
 
