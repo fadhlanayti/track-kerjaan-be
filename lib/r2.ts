@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import crypto from 'crypto'
 
 const s3 = new S3Client({
@@ -28,4 +28,23 @@ export async function uploadToR2(
   )
 
   return `${process.env.R2_PUBLIC_URL}/${key}`
+}
+
+export async function deleteFromR2(url: string): Promise<boolean> {
+  try {
+    const publicUrl = process.env.R2_PUBLIC_URL!
+    if (!url.startsWith(publicUrl)) return false
+
+    const key = url.replace(`${publicUrl}/`, '')
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME!,
+        Key: key,
+      })
+    )
+    return true
+  } catch (error) {
+    console.error('Delete R2 failed:', error)
+    return false
+  }
 }

@@ -47,7 +47,7 @@ export async function POST(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const { title, description, priority, attachments } = await req.json()
+  const { title, description, priority, attachments, projectUpdateId } = await req.json()
   if (!title) return NextResponse.json({ error: 'Title required' }, { status: 400 })
 
   const issue = await prisma.issue.create({
@@ -58,6 +58,7 @@ export async function POST(
       priority: priority || 'MEDIUM',
       attachments: attachments || [],
       createdById: session.user.id,
+      projectUpdateId: projectUpdateId || null,
     },
     include: {
       createdBy: { select: { id: true, name: true } },
@@ -72,6 +73,11 @@ export async function POST(
       action: 'CREATED',
     },
   })
+
+  // Emit realtime event
+  if ((globalThis as any).__io) {
+    (globalThis as any).__io.to(`project:${id}`).emit('issue:new', issue)
+  }
 
   return NextResponse.json(issue, { status: 201 })
 }

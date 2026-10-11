@@ -109,7 +109,11 @@ body {
   box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 .input::placeholder { color: var(--text-muted); }
-select.input { cursor: pointer; }
+select.input {
+  cursor: pointer;
+  line-height: normal;
+  height: auto;
+}
 option { background: var(--bg-card); color: var(--text-primary); }
 
 .label {

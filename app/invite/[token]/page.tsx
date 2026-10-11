@@ -67,7 +67,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Set up your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
             <label className="label">Email</label>
             <input
@@ -105,6 +105,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
             type="submit"
             disabled={submitting}
             className="btn-primary w-full justify-center py-2.5"
+            style={{ marginTop: '1rem' }}
           >
             {submitting ? 'Setting up...' : 'Set Password & Join'}
           </button>

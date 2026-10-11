@@ -1,3 +1,19 @@
+export const statusLabels: Record<string, string> = {
+  OPEN:        'Baru',
+  IN_REVIEW:   'Ditinjau',
+  IN_PROGRESS: 'Dikerjakan',
+  RESOLVED:    'Diselesaikan',
+  CLOSED:      'Ditutup',
+  LOW:         'Rendah',
+  MEDIUM:      'Sedang',
+  HIGH:        'Tinggi',
+  URGENT:      'Mendesak',
+  ACTIVE:      'Aktif',
+  ON_HOLD:     'Tertunda',
+  COMPLETED:   'Selesai',
+  ARCHIVED:    'Diarsipkan',
+}
+
 const statusConfig: Record<string, { color: string; bg: string }> = {
   OPEN:        { color: '#087CF0', bg: '#EBF5FF' },
   IN_REVIEW:   { color: '#92400E', bg: '#FEF3C7' },
@@ -18,12 +34,14 @@ const fallback = { color: '#4B5563', bg: '#F3F4F6' }
 
 export function StatusBadge({ value }: { value: string }) {
   const { color, bg } = statusConfig[value] || fallback
+  const label = statusLabels[value] || value.replace(/_/g, ' ')
+
   return (
     <span
       className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-lg"
       style={{ color, backgroundColor: bg }}
     >
-      {value.replace(/_/g, ' ')}
+      {label}
     </span>
   )
 }

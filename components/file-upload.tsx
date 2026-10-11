@@ -3,7 +3,7 @@ import { useState, useRef } from 'react'
 import { Paperclip, Loader2 } from 'lucide-react'
 
 interface Props {
-  onUpload: (url: string) => void
+  onUpload: (urls: string[]) => void
 }
 
 export function FileUpload({ onUpload }: Props) {
@@ -11,18 +11,26 @@ export function FileUpload({ onUpload }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = e.target.files
+    if (!files || files.length === 0) return
 
     setUploading(true)
+    const fileList = Array.from(files)
+    const uploadedUrls: string[] = []
+
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      for (const file of fileList) {
+        const formData = new FormData()
+        formData.append('file', file)
 
-      const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      const data = await res.json()
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        const data = await res.json()
+        if (data.url) uploadedUrls.push(data.url)
+      }
 
-      if (data.url) onUpload(data.url)
+      if (uploadedUrls.length > 0) {
+        onUpload(uploadedUrls)
+      }
     } catch (err) {
       console.error('Upload failed', err)
     } finally {
@@ -36,6 +44,7 @@ export function FileUpload({ onUpload }: Props) {
       <input
         ref={inputRef}
         type="file"
+        multiple
         className="hidden"
         accept="image/*,.pdf,.zip"
         onChange={handleFile}
@@ -44,10 +53,7 @@ export function FileUpload({ onUpload }: Props) {
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        className="p-2 rounded-md transition-colors"
-        style={{ color: '#5B65DC' }}
-        onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = '#E6E7F0')}
-        onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => (e.currentTarget.style.backgroundColor = 'transparent')}
+        className="p-2 rounded-full transition-colors flex items-center justify-center border-none bg-transparent cursor-pointer text-slate-500 hover:text-slate-700 hover:bg-slate-100"
         title="Attach file"
       >
         {uploading ? <Loader2 size={18} className="animate-spin" /> : <Paperclip size={18} />}

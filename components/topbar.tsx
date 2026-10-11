@@ -43,7 +43,7 @@ export function Topbar() {
   return (
     <header className="topbar">
       {/* Hamburger — hidden on md+ via CSS */}
-      <button onClick={toggle} className="hamburger items-center justify-center w-9 h-9 rounded-lg cursor-pointer border-none bg-transparent text-secondary">
+      <button onClick={toggle} className="hamburger items-center justify-center w-9 h-9 rounded-lg cursor-pointer border-none bg-transparent" style={{ color: 'rgba(255,255,255,0.85)' }}>
         <Menu size={20} />
       </button>
       <div className="flex-1" />
@@ -53,8 +53,8 @@ export function Topbar() {
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setShowNotifs(!showNotifs)}
-            className="relative flex items-center justify-center w-9 h-9 rounded-lg cursor-pointer border-none bg-transparent text-secondary"
-            style={{ color: 'var(--text-secondary)' }}
+            className="relative flex items-center justify-center w-9 h-9 rounded-lg cursor-pointer border-none bg-transparent"
+            style={{ color: 'rgba(255,255,255,0.85)' }}
           >
             <Bell size={19} />
             {unread > 0 && (
@@ -66,7 +66,20 @@ export function Topbar() {
             )}
           </button>
           {showNotifs && (
-            <div className="dropdown" style={{ width: '20rem', maxHeight: '24rem', overflowY: 'auto' }}>
+            <div
+              className="dropdown"
+              style={{
+                position: 'fixed',
+                top: 'calc(var(--topbar-height) + 0.5rem)',
+                left: '0.75rem',
+                right: '0.75rem',
+                width: 'auto',
+                maxWidth: '22rem',
+                marginLeft: 'auto',
+                maxHeight: 'min(24rem, calc(100vh - var(--topbar-height) - 2rem))',
+                overflowY: 'auto',
+              }}
+            >
               <div className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted" style={{ borderBottom: '1px solid var(--border)' }}>Notifications</div>
               {notifications.length === 0 ? (
                 <div className="p-4 text-sm text-center text-muted">No notifications</div>
@@ -95,11 +108,12 @@ export function Topbar() {
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors cursor-pointer border-none bg-transparent"
+            style={{ color: 'white' }}
           >
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium bg-charcoal">
               {(session?.user?.name || '?')[0].toUpperCase()}
             </div>
-            <span className="text-sm font-medium hidden sm:block text-primary">{session?.user?.name}</span>
+            <span className="text-sm font-medium hidden sm:block" style={{ color: 'white' }}>{session?.user?.name}</span>
           </button>
           {showMenu && (
             <div className="dropdown" style={{ width: '12rem' }}>

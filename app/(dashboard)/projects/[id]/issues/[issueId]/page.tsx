@@ -1,7 +1,9 @@
 'use client'
 import { useState, useEffect, use } from 'react'
 import { useSession } from 'next-auth/react'
-import { StatusBadge } from '@/components/status-badge'
+import Link from 'next/link'
+import { ChevronRight, Paperclip, Send, Clock, MessageSquare } from 'lucide-react'
+import { StatusBadge, statusLabels } from '@/components/status-badge'
 import { FileUpload } from '@/components/file-upload'
 
 interface Comment {
@@ -9,14 +11,6 @@ interface Comment {
   content: string
   attachments: string[]
   author: { id: string; name: string; avatar: string | null }
-  createdAt: string
-}
-
-interface Activity {
-  id: string
-  action: string
-  metadata: any
-  user: { id: string; name: string }
   createdAt: string
 }
 
@@ -30,7 +24,6 @@ interface Issue {
   createdBy: { id: string; name: string; avatar: string | null }
   assignedTo: { id: string; name: string; avatar: string | null } | null
   comments: Comment[]
-  activities: Activity[]
   project: { id: string; name: string }
   createdAt: string
 }
@@ -54,7 +47,6 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
 
   useEffect(() => {
     fetchIssue()
-    // Fetch project members for assignment dropdown
     fetch(`/api/projects/${id}`)
       .then(r => r.json())
       .then(data => { if (data.members) setMembers(data.members) })
@@ -85,8 +77,21 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
     fetchIssue()
   }
 
-  if (loading) return <div className="loading-state">Loading...</div>
-  if (!issue) return <div style={{ color: 'var(--red)' }}>Issue not found</div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh] text-sm text-[var(--text-muted)]">
+        Loading issue...
+      </div>
+    )
+  }
+
+  if (!issue) {
+    return (
+      <div className="p-6 rounded-2xl bg-red-50 text-red-600 border border-red-200 text-sm">
+        Issue not found
+      </div>
+    )
+  }
 
   const isAdmin = session?.user?.role === 'ADMIN'
   const isAssignee = session?.user?.id === issue.assignedTo?.id
@@ -97,69 +102,120 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
   const developers = members.filter(m => m.user.role === 'DEVELOPER' || m.user.role === 'ADMIN')
 
   return (
-    <div style={{ width: '100%' }}>
-      {/* Breadcrumb */}
-      <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-        <a href={`/projects/${id}`} style={{ color: 'var(--accent)' }}>{issue.project.name}</a>
-        {' / '}
-        <a href={`/projects/${id}/issues`} style={{ color: 'var(--accent)' }}>Issues</a>
-        {` / ${issue.title}`}
-      </p>
+    <div style={{ width: '100%', maxWidth: 880, margin: '0 auto', paddingBottom: '4rem' }}>
 
-      {/* Issue header */}
-      <div className="card p-5 mb-4">
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{issue.title}</h2>
-          <div className="flex gap-2">
+      {/* Revisi #1: Breadcrumb dengan jarak lega ke card bawahnya */}
+      <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1.25rem', marginTop: '0.25rem' }}>
+        <Link
+          href={`/projects/${id}`}
+          style={{ color: 'var(--accent)', fontWeight: 500, textDecoration: 'none' }}
+        >
+          {issue.project.name}
+        </Link>
+        <ChevronRight size={13} style={{ opacity: 0.5 }} />
+        <Link
+          href={`/projects/${id}/issues`}
+          style={{ color: 'var(--accent)', fontWeight: 500, textDecoration: 'none' }}
+        >
+          Issues
+        </Link>
+        <ChevronRight size={13} style={{ opacity: 0.5 }} />
+        <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 280 }}>
+          {issue.title}
+        </span>
+      </nav>
+
+      {/* Main Issue Card */}
+      <div className="card p-6" style={{ marginBottom: '2rem' }}>
+        {/* Top bar: title + badges */}
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0, lineHeight: 1.3 }}>
+              {issue.title}
+            </h1>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+              <span>By <strong style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{issue.createdBy.name}</strong></span>
+              <span>•</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Clock size={12} />
+                {new Date(issue.createdAt).toLocaleDateString()}
+              </span>
+              {issue.assignedTo && (
+                <>
+                  <span>•</span>
+                  <span>Assigned to <strong style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{issue.assignedTo.name}</strong></span>
+                </>
+              )}
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
             <StatusBadge value={issue.priority} />
             <StatusBadge value={issue.status} />
           </div>
         </div>
 
-        {issue.description && (
-          <div className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-            {issue.description}
-          </div>
-        )}
+        {/* Description */}
+        <div style={{ padding: '1.25rem 0' }}>
+          {issue.description ? (
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: 0 }}>
+              {issue.description}
+            </p>
+          ) : (
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
+              No description
+            </p>
+          )}
 
-        {issue.attachments.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {issue.attachments.map((url, i) => (
-              <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: 'var(--accent)' }}>
-                Attachment {i + 1}
-              </a>
-            ))}
-          </div>
-        )}
-
-        <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--text-muted)' }}>
-          <span>By {issue.createdBy.name}</span>
-          <span>{new Date(issue.createdAt).toLocaleDateString()}</span>
-          {issue.assignedTo && <span>Assigned to {issue.assignedTo.name}</span>}
+          {/* Attachments */}
+          {issue.attachments.length > 0 && (
+            <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {issue.attachments.map((url, i) => (
+                <a
+                  key={i}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                    padding: '0.375rem 0.75rem', borderRadius: '0.5rem',
+                    fontSize: '0.75rem', fontWeight: 500,
+                    backgroundColor: 'var(--accent-subtle)', color: 'var(--accent)',
+                    textDecoration: 'none'
+                  }}
+                >
+                  <Paperclip size={12} />
+                  Attachment {i + 1}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Controls (admin, assignee, or developer) */}
+        {/* Controls: Status & Assignee (tanpa terpotong) */}
         {canUpdateStatus && (
-          <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-            <div>
-              <label className="label">Status</label>
+          <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.25rem', fontSize: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <label style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Status:</label>
               <select
                 value={issue.status}
                 onChange={e => updateIssue({ status: e.target.value })}
-                className="input text-xs"
-                style={{ width: 'auto' }}
+                className="input"
+                style={{ width: 'auto', padding: '0.375rem 0.75rem', fontSize: '0.75rem', fontWeight: 600, height: 'auto', lineHeight: 'normal' }}
               >
-                {statuses.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+                {statuses.map(s => (
+                  <option key={s} value={s}>{statusLabels[s] || s}</option>
+                ))}
               </select>
             </div>
+
             {isAdmin && (
-              <div>
-                <label className="label">Assign To</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Assign to:</label>
                 <select
                   value={issue.assignedTo?.id || ''}
                   onChange={e => updateIssue({ assignedToId: e.target.value || null })}
-                  className="input text-xs"
-                  style={{ width: 'auto' }}
+                  className="input"
+                  style={{ width: 'auto', padding: '0.375rem 0.75rem', fontSize: '0.75rem', fontWeight: 600, height: 'auto', lineHeight: 'normal' }}
                 >
                   <option value="">Unassigned</option>
                   {developers.map(m => (
@@ -172,96 +228,133 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
         )}
       </div>
 
-      {/* Activity + Comments timeline */}
-      <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Activity</h3>
-
-      <div className="space-y-3 mb-6">
-        {[
-          ...issue.activities.map(a => ({ type: 'activity' as const, data: a, date: a.createdAt })),
-          ...issue.comments.map(c => ({ type: 'comment' as const, data: c, date: c.createdAt })),
-        ]
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .map(item => {
-            if (item.type === 'activity') {
-              const a = item.data as Activity
-              let text = a.action.replace(/_/g, ' ').toLowerCase()
-              if (a.action === 'STATUS_CHANGED' && a.metadata) {
-                text = `changed status from ${a.metadata.oldStatus} to ${a.metadata.newStatus}`
-              }
-              return (
-                <div key={`a-${a.id}`} className="flex items-center gap-2 text-xs py-1" style={{ color: 'var(--text-muted)' }}>
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--border)' }} />
-                  <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{a.user.name}</span>
-                  <span>{text}</span>
-                  <span className="ml-auto">{new Date(a.createdAt).toLocaleString()}</span>
-                </div>
-              )
-            } else {
-              const c = item.data as Comment
-              return (
-                <div key={`c-${c.id}`} className="card p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div
-                      className="avatar-sm flex items-center justify-center text-white text-xs font-medium"
-                      style={{ backgroundColor: 'var(--accent)' }}
-                    >
-                      {c.author.name[0].toUpperCase()}
-                    </div>
-                    <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{c.author.name}</span>
-                    <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>{new Date(c.createdAt).toLocaleString()}</span>
-                  </div>
-                  <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>{c.content}</div>
-                  {c.attachments.length > 0 && (
-                    <div className="flex gap-2 mt-2">
-                      {c.attachments.map((url, i) => (
-                        <a key={i} href={url} target="_blank" rel="noopener" className="text-xs underline" style={{ color: 'var(--accent)' }}>
-                          Attachment {i + 1}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            }
-          })}
+      {/* Revisi #2: Judul Discussion dengan jarak lega ke atas dan ke bawah */}
+      <div style={{ marginTop: '2rem', marginBottom: '1.25rem' }}>
+        <h2 style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+          <MessageSquare size={17} style={{ color: 'var(--accent)' }} />
+          <span>Discussion</span>
+          <span style={{
+            fontSize: '0.75rem', padding: '0.125rem 0.5rem', borderRadius: '9999px',
+            backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)',
+            color: 'var(--text-secondary)', fontWeight: 500
+          }}>
+            {issue.comments.length}
+          </span>
+        </h2>
       </div>
 
-      {/* Comment form */}
-      <form onSubmit={submitComment} className="card p-4">
-        <textarea
-          value={commentText}
-          onChange={e => setCommentText(e.target.value)}
-          placeholder="Write a comment..."
-          rows={3}
-          className="input resize-none mb-2"
-        />
-        {commentAttachments.length > 0 && (
-          <div className="flex gap-2 mb-2">
-            {commentAttachments.map((url, i) => (
-              <span key={i} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--accent-subtle)', color: 'var(--accent-text)' }}>
-                File {i + 1}
-                <button
-                  type="button"
-                  onClick={() => setCommentAttachments(prev => prev.filter((_, j) => j !== i))}
-                  className="ml-1" style={{ color: 'var(--red)' }}
-                >
-                  x
-                </button>
-              </span>
-            ))}
+      {/* Comments List & Box */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {issue.comments.length === 0 ? (
+          <div className="card p-6" style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            No discussion yet. Leave the first comment below!
           </div>
+        ) : (
+          issue.comments.map(c => (
+            <div
+              key={c.id}
+              className="card p-4"
+              style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                  <div style={{
+                    width: '1.5rem', height: '1.5rem', borderRadius: '50%',
+                    backgroundColor: 'var(--accent)', color: '#fff',
+                    fontSize: '0.6875rem', fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                  }}>
+                    {c.author.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {c.author.name}
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                  {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(c.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+
+              <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: '2.125rem', whiteSpace: 'pre-wrap' }}>
+                {c.content}
+              </div>
+
+              {c.attachments.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', paddingLeft: '2.125rem', paddingTop: '0.25rem' }}>
+                  {c.attachments.map((url, i) => (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                        fontSize: '0.6875rem', padding: '0.25rem 0.5rem', borderRadius: '0.375rem',
+                        backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                        color: 'var(--accent)', textDecoration: 'none'
+                      }}
+                    >
+                      <Paperclip size={10} />
+                      Attachment {i + 1}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
         )}
-        <div className="flex items-center gap-2">
-          <FileUpload onUpload={(urls) => setCommentAttachments(prev => [...prev, ...urls])} />
-          <button
-            type="submit"
-            disabled={submitting || !commentText.trim()}
-            className="btn-primary ml-auto"
-          >
-            {submitting ? 'Posting...' : 'Comment'}
-          </button>
-        </div>
-      </form>
+
+        {/* Comment Box */}
+        <form onSubmit={submitComment} className="card p-4" style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <textarea
+            value={commentText}
+            onChange={e => setCommentText(e.target.value)}
+            placeholder="Write a comment..."
+            rows={3}
+            className="input resize-none"
+            style={{ fontSize: '0.8125rem', padding: '0.75rem', width: '100%' }}
+          />
+
+          {commentAttachments.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {commentAttachments.map((url, i) => (
+                <span
+                  key={i}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                    fontSize: '0.75rem', padding: '0.25rem 0.625rem', borderRadius: '0.5rem',
+                    backgroundColor: 'var(--accent-subtle)', color: 'var(--accent)', fontWeight: 500
+                  }}
+                >
+                  <Paperclip size={12} />
+                  File {i + 1}
+                  <button
+                    type="button"
+                    onClick={() => setCommentAttachments(prev => prev.filter((_, j) => j !== i))}
+                    style={{ marginLeft: '0.25rem', color: 'var(--red)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.25rem' }}>
+            <FileUpload onUpload={(urls) => setCommentAttachments(prev => [...prev, ...urls])} />
+            <button
+              type="submit"
+              disabled={submitting || !commentText.trim()}
+              className="btn-primary"
+              style={{ fontSize: '0.75rem', padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', cursor: 'pointer' }}
+            >
+              <Send size={13} />
+              {submitting ? 'Posting...' : 'Comment'}
+            </button>
+          </div>
+        </form>
+      </div>
+
     </div>
   )
 }

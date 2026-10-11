@@ -51,7 +51,7 @@ export default function NewProjectPage() {
   }
 
   return (
-    <div className="max-w-lg">
+    <div className="max-w-lg" style={{ margin: '0 auto' }}>
       <h2 className="text-lg font-bold mb-5" style={{ color: 'var(--text-primary)' }}>New Project</h2>
 
       <div className="card p-5">
@@ -79,8 +79,8 @@ export default function NewProjectPage() {
 
           {users.length > 0 && (
             <div>
-              <label className="label">Add Members</label>
-              <div className="space-y-1.5">
+              <label className="label" style={{ marginBottom: '0.5rem', display: 'block' }}>Add Members</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {users.map(user => {
                   const selected = selectedMembers.some(m => m.userId === user.id)
                   return (
@@ -112,6 +112,7 @@ export default function NewProjectPage() {
             type="submit"
             disabled={submitting}
             className="btn-primary"
+            style={{ marginTop: '0.5rem', width: '100%' }}
           >
             {submitting ? 'Creating...' : 'Create Project'}
           </button>

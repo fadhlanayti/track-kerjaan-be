@@ -33,7 +33,7 @@ export default function InviteUserPage() {
   }
 
   return (
-    <div style={{ maxWidth: '30rem' }}>
+    <div style={{ maxWidth: '30rem', margin: '0 auto', width: '100%' }}>
       {/* Page header */}
       <div className="flex items-center gap-3" style={{ marginBottom: '1.5rem' }}>
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--accent)', color: 'white' }}>

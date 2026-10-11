@@ -87,11 +87,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
   }
 
-  function handleFileUpload(url: string) {
+  function handleFileUpload(urls: string[]) {
     fetch(`/api/projects/${id}/chat/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: 'Shared a file', attachments: [url] }),
+      body: JSON.stringify({ content: 'Shared files', attachments: urls }),
     }).then(r => r.json()).then(message => {
       const socket = getSocket()
       socket.emit('message:send', { ...message, projectId: id })
@@ -105,10 +105,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   let lastDate = ''
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - var(--topbar-height) - 2.5rem)' }}>
+    <div className="flex flex-col mx-auto w-full max-w-4xl" style={{ height: 'calc(100vh - var(--topbar-height) - 2.5rem)' }}>
 
       {/* Chat header */}
-      <div className="flex items-center gap-3" style={{ marginBottom: '0.75rem' }}>
+      <div className="flex items-center gap-3" style={{ marginBottom: '1rem', marginTop: '0.5rem' }}>
         <Link
           href={`/projects/${id}`}
           style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
@@ -199,24 +199,33 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         <div ref={bottomRef} />
       </div>
 
-      {/* Input bar */}
-      <form onSubmit={sendMessage} className="flex items-center gap-2">
-        <FileUpload onUpload={handleFileUpload} />
+      {/* Input bar - ChatGPT style */}
+      <form
+        onSubmit={sendMessage}
+        className="flex items-center gap-3 p-2 bg-white rounded-3xl border border-slate-200 shadow-md focus-within:border-slate-400 focus-within:shadow-lg transition-all"
+        style={{ marginTop: '0.5rem' }}
+      >
+        <div className="pl-1">
+          <FileUpload onUpload={handleFileUpload} />
+        </div>
         <input
           type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder="Ketik pesan..."
-          className="input"
-          style={{ flex: 1 }}
+          placeholder="Kirim pesan atau instruksi..."
+          className="flex-1 bg-transparent border-none text-sm outline-none px-2 py-1 text-slate-800 placeholder:text-slate-400"
+          style={{ boxShadow: 'none' }}
         />
         <button
           type="submit"
           disabled={!input.trim()}
-          className="btn-primary"
-          style={{ padding: '0.625rem' }}
+          className="w-9 h-9 rounded-full flex items-center justify-center transition-all border-none cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: input.trim() ? '#F97316' : '#E2E8F0',
+            color: 'white',
+          }}
         >
-          <Send size={18} />
+          <Send size={16} />
         </button>
       </form>
     </div>

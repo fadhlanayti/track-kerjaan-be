@@ -39,7 +39,7 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="flex flex-col gap-6" style={{ maxWidth: '1100px' }}>
+    <div className="flex flex-col gap-6" style={{ maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
 
       {/* Welcome header */}
       <div className="dashboard-welcome">
@@ -48,13 +48,13 @@ export default function DashboardPage() {
             {(session?.user?.name || 'U')[0].toUpperCase()}
           </div>
           <div>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Welcome back</p>
-            <h1 className="text-xl font-bold text-white">{session?.user?.name}</h1>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)', marginTop: '0.125rem' }}>{session?.user?.role} · WeballCreative</p>
+            <p className="text-sm font-medium" style={{ color: '#FFFFFF' }}>Welcome back</p>
+            <h1 className="text-xl font-bold" style={{ color: '#FFFFFF' }}>{session?.user?.name}</h1>
+            <p className="text-xs font-medium" style={{ color: '#FFFFFF', marginTop: '0.125rem' }}>{session?.user?.role} · WeballCreative</p>
           </div>
         </div>
         <div className="dashboard-welcome-meta">
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <p className="text-sm font-medium" style={{ color: '#FFFFFF' }}>
             {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
           {isAdmin && (

@@ -82,11 +82,21 @@ export async function PATCH(
 
     // Notify issue creator about status change
     if (oldIssue.createdById !== session.user.id) {
+      const statusLabels: Record<string, string> = {
+        OPEN: 'Baru',
+        IN_REVIEW: 'Ditinjau',
+        IN_PROGRESS: 'Dikerjakan',
+        RESOLVED: 'Diselesaikan',
+        CLOSED: 'Ditutup',
+      }
+      const oldLabel = statusLabels[oldIssue.status] || oldIssue.status
+      const newLabel = statusLabels[body.status] || body.status
+
       await createNotification({
         userId: oldIssue.createdById,
         type: 'ISSUE_UPDATED',
-        title: 'Issue Updated',
-        message: `Issue #${issueId} status: ${oldIssue.status} → ${body.status}`,
+        title: 'Status Issue Diperbarui',
+        message: `Issue "${oldIssue.title}": ${oldLabel} → ${newLabel}`,
         referenceId: issueId,
         referenceType: 'issue',
         waMessage: formatStatusChanged({

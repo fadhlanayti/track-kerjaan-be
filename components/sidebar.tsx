@@ -30,12 +30,12 @@ export function Sidebar() {
       <aside className={`sidebar${open ? ' open' : ''}`}>
         {/* Brand */}
         <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <div>
-            <div className="flex items-center gap-2.5 mb-0.5">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 bg-accent">W</div>
-              <h1 className="text-sm font-bold tracking-tight text-white">WeballCreative</h1>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 bg-accent">W</div>
+            <div>
+              <h1 className="text-sm font-bold tracking-tight text-white leading-tight">WeballCreative</h1>
+              <p className="text-[11px] leading-tight" style={{ color: 'rgba(255,255,255,0.4)' }}>Project Tracker</p>
             </div>
-            <p className="text-xs ml-9" style={{ color: 'rgba(255,255,255,0.4)' }}>Project Tracker</p>
           </div>
           <button onClick={toggle} className="hamburger items-center justify-center w-7 h-7 rounded-lg cursor-pointer border-none bg-transparent" style={{ color: 'rgba(255,255,255,0.5)' }}>
             <X size={18} />

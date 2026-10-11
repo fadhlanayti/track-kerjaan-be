@@ -72,6 +72,7 @@ export default function LoginPage() {
             type="submit"
             disabled={loading}
             className="btn-primary w-full justify-center py-2.5"
+            style={{ marginTop: '0.75rem' }}
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>

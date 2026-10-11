@@ -2,8 +2,8 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { Plus } from 'lucide-react'
-import { StatusBadge } from '@/components/status-badge'
+import { Plus, MessageSquare, User, Filter, AlertCircle, ArrowUpRight } from 'lucide-react'
+import { StatusBadge, statusLabels } from '@/components/status-badge'
 
 interface Issue {
   id: string
@@ -17,6 +17,7 @@ interface Issue {
 }
 
 const STATUSES = ['OPEN', 'IN_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
+const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
 
 export default function IssuesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -67,107 +68,226 @@ export default function IssuesPage({ params }: { params: Promise<{ id: string }>
     setUpdatingId(null)
   }
 
-  if (loading) return <div className="loading-state">Loading...</div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[40vh] text-sm text-[var(--text-muted)]">
+        Memuat daftar issue...
+      </div>
+    )
+  }
 
   const canCreate = session?.user?.role === 'ADMIN' || session?.user?.role === 'CLIENT'
   const canUpdateStatus = session?.user?.role === 'ADMIN' || session?.user?.role === 'DEVELOPER'
 
   return (
-    <div>
-      <div className="page-header">
-        <h2 className="page-title">Issues</h2>
+    <div style={{ width: '100%', maxWidth: 1024, margin: '0 auto', paddingTop: '0.75rem', paddingBottom: '4rem' }}>
+
+      {/* Header bar dengan margin bawah yang lega */}
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)', margin: 0 }}>
+            Issues
+          </h1>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.5rem', marginBottom: 0 }}>
+            Pantau, laporkan, dan kelola tugas serta kendala proyek
+          </p>
+        </div>
+
         {canCreate && (
-          <button onClick={() => setShowCreateForm(!showCreateForm)} className="btn-primary">
-            <Plus size={16} /> New Issue
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="btn-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', cursor: 'pointer' }}
+          >
+            <Plus size={16} /> Tambah Issue
           </button>
         )}
       </div>
 
-      {/* Create form */}
+      {/* Create form drawer / card */}
       {showCreateForm && (
-        <form onSubmit={createIssue} className="card p-4 mb-4" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Issue title" required className="input" />
-          <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Description (optional)" rows={3} className="input resize-none" />
-          <div className="flex items-center gap-3">
-            <select value={newPriority} onChange={e => setNewPriority(e.target.value)} className="input" style={{ width: 'auto' }}>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="URGENT">Urgent</option>
-            </select>
-            <button type="submit" disabled={creating} className="btn-primary">{creating ? 'Creating...' : 'Create'}</button>
-            <button type="button" onClick={() => setShowCreateForm(false)} className="btn-secondary">Cancel</button>
+        <form onSubmit={createIssue} className="card p-5" style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Buat Issue Baru</h3>
+            <button
+              type="button"
+              onClick={() => setShowCreateForm(false)}
+              style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              Batal
+            </button>
+          </div>
+
+          <input
+            type="text"
+            value={newTitle}
+            onChange={e => setNewTitle(e.target.value)}
+            placeholder="Judul issue"
+            required
+            className="input"
+          />
+
+          <textarea
+            value={newDesc}
+            onChange={e => setNewDesc(e.target.value)}
+            placeholder="Deskripsi detail kendala atau tugas (opsional)..."
+            rows={3}
+            className="input resize-none"
+            style={{ fontSize: '0.8125rem', padding: '0.75rem' }}
+          />
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', paddingTop: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>Prioritas:</label>
+              <select
+                value={newPriority}
+                onChange={e => setNewPriority(e.target.value)}
+                className="input"
+                style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.75rem', height: 'auto', lineHeight: 'normal' }}
+              >
+                {PRIORITIES.map(p => (
+                  <option key={p} value={p}>{statusLabels[p] || p}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setShowCreateForm(false)}
+                className="btn-secondary"
+                style={{ fontSize: '0.75rem', padding: '0.4rem 0.85rem' }}
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={creating || !newTitle.trim()}
+                className="btn-primary"
+                style={{ fontSize: '0.75rem', padding: '0.4rem 1rem', cursor: 'pointer' }}
+              >
+                {creating ? 'Menyimpan...' : 'Simpan Issue'}
+              </button>
+            </div>
           </div>
         </form>
       )}
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-4" style={{ flexWrap: 'wrap' }}>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="input text-xs" style={{ width: 'auto' }}>
-          <option value="">All Status</option>
-          {STATUSES.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-        </select>
-        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} className="input text-xs" style={{ width: 'auto' }}>
-          <option value="">All Priority</option>
-          <option value="LOW">Low</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HIGH">High</option>
-          <option value="URGENT">Urgent</option>
-        </select>
+      {/* Filter toolbar - Jarak lega ke atas dan bawah */}
+      <div className="card p-3.5" style={{ marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500, marginRight: '0.25rem' }}>
+            <Filter size={14} />
+            <span>Filter:</span>
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            className="input text-xs"
+            style={{ width: 'auto', padding: '0.45rem 0.85rem', height: 'auto', lineHeight: 'normal', cursor: 'pointer' }}
+          >
+            <option value="">Semua Status</option>
+            {STATUSES.map(s => <option key={s} value={s}>{statusLabels[s] || s}</option>)}
+          </select>
+
+          <select
+            value={priorityFilter}
+            onChange={e => setPriorityFilter(e.target.value)}
+            className="input text-xs"
+            style={{ width: 'auto', padding: '0.45rem 0.85rem', height: 'auto', lineHeight: 'normal', cursor: 'pointer' }}
+          >
+            <option value="">Semua Prioritas</option>
+            {PRIORITIES.map(p => <option key={p} value={p}>{statusLabels[p] || p}</option>)}
+          </select>
+        </div>
+
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0 0.5rem' }}>
+          Total: <strong style={{ color: 'var(--text-primary)' }}>{issues.length}</strong> issue
+        </div>
       </div>
 
-      {/* Issue list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {issues.length === 0 && <p className="empty-state">No issues yet</p>}
-        {issues.map(issue => (
-          <div key={issue.id} className="card" style={{ padding: '1rem 1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', flexWrap: 'wrap' }}>
-              {/* Title + meta */}
-              <div style={{ flex: 1, minWidth: '10rem' }}>
-                <Link
-                  href={`/projects/${id}/issues/${issue.id}`}
-                  style={{ color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 600, fontSize: '0.9375rem' }}
-                >
-                  {issue.title}
-                </Link>
-                <p className="text-xs" style={{ color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                  by {issue.createdBy.name}
-                  {issue.assignedTo ? ` · ${issue.assignedTo.name}` : ''}
-                  {` · ${issue._count.comments} comments`}
-                </p>
-              </div>
+      {/* Issues list - Modern Cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+        {issues.length === 0 ? (
+          <div className="card p-12" style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <AlertCircle size={28} style={{ margin: '0 auto 0.5rem', opacity: 0.4 }} />
+            Belum ada issue yang cocok dengan filter.
+          </div>
+        ) : (
+          issues.map(issue => (
+            <div
+              key={issue.id}
+              className="card p-4.5"
+              style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', transition: 'box-shadow 0.15s ease' }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
 
-              {/* Right side: badges + quick status */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <StatusBadge value={issue.priority} />
-
-                {canUpdateStatus ? (
-                  <select
-                    value={issue.status}
-                    disabled={updatingId === issue.id}
-                    onChange={e => quickUpdateStatus(issue.id, e.target.value)}
-                    onClick={e => e.preventDefault() /* prevent link navigation */}
-                    className="input text-xs"
-                    style={{ width: 'auto', padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                {/* Left: Info */}
+                <div style={{ flex: 1, minWidth: 220 }}>
+                  <Link
+                    href={`/projects/${id}/issues/${issue.id}`}
+                    style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--text-primary)', textDecoration: 'none' }}
                   >
-                    {STATUSES.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-                  </select>
-                ) : (
-                  <StatusBadge value={issue.status} />
-                )}
+                    {issue.title}
+                  </Link>
 
-                <Link
-                  href={`/projects/${id}/issues/${issue.id}`}
-                  className="btn-secondary text-xs"
-                  style={{ padding: '0.25rem 0.625rem', fontSize: '0.75rem' }}
-                >
-                  Detail →
-                </Link>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.625rem', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.375rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <User size={12} />
+                      {issue.createdBy.name}
+                    </span>
+                    {issue.assignedTo && (
+                      <>
+                        <span>•</span>
+                        <span>Ditugaskan ke: <strong style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{issue.assignedTo.name}</strong></span>
+                      </>
+                    )}
+                    <span>•</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--accent)', fontWeight: 500 }}>
+                      <MessageSquare size={12} />
+                      {issue._count.comments}
+                    </span>
+                    <span>•</span>
+                    <span>{new Date(issue.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                {/* Right: Actions & Badges */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                  <StatusBadge value={issue.priority} />
+
+                  {canUpdateStatus ? (
+                    <select
+                      value={issue.status}
+                      disabled={updatingId === issue.id}
+                      onChange={e => quickUpdateStatus(issue.id, e.target.value)}
+                      onClick={e => e.stopPropagation()}
+                      className="input text-xs font-semibold"
+                      style={{ width: 'auto', padding: '0.4rem 0.75rem', height: 'auto', lineHeight: 'normal', cursor: 'pointer' }}
+                    >
+                      {STATUSES.map(s => <option key={s} value={s}>{statusLabels[s] || s}</option>)}
+                    </select>
+                  ) : (
+                    <StatusBadge value={issue.status} />
+                  )}
+
+                  <Link
+                    href={`/projects/${id}/issues/${issue.id}`}
+                    className="btn-secondary text-xs"
+                    style={{ padding: '0.4rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', textDecoration: 'none' }}
+                  >
+                    <span>Detail</span>
+                    <ArrowUpRight size={13} />
+                  </Link>
+                </div>
+
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
+
     </div>
   )
 }

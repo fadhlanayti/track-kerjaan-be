@@ -668,7 +668,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   {/* Update Header (Clickable Accordion) */}
                   <div
                     onClick={() => toggleUpdateExpand(up.id)}
-                    className="flex items-start justify-between gap-3 cursor-pointer select-none"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="text-zinc-400 hover:text-zinc-700 transition-colors shrink-0">
@@ -677,9 +677,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 bg-[#0071E3]">
                         {up.author.name[0].toUpperCase()}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs sm:text-sm font-bold text-zinc-900 truncate">{up.title}</span>
+                          <span className="text-xs sm:text-sm font-bold text-zinc-900 break-words">{up.title}</span>
                           <span className="text-[10px] text-zinc-500 font-medium">by {up.author.name}</span>
                           {up.status && (
                             <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
@@ -693,10 +693,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] text-zinc-400 flex items-center gap-1 mt-0.5">
-                          <Clock size={11} /> {new Date(up.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        <span className="text-[11px] text-zinc-400 flex items-center flex-wrap gap-1 mt-0.5">
+                          <span className="flex items-center gap-1">
+                            <Clock size={11} /> {new Date(up.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </span>
                           {up.assignedTo && (
-                            <span className="ml-1 text-zinc-500">· Assigned: {up.assignedTo.name}</span>
+                            <span className="text-zinc-500">· Assigned: {up.assignedTo.name}</span>
                           )}
                         </span>
                       </div>
@@ -705,7 +707,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     {/* Action: Edit, Lapor Issue & Delete */}
                     <div
                       onClick={e => e.stopPropagation()}
-                      className="flex items-center gap-1.5 shrink-0"
+                      className="flex items-center gap-1.5 shrink-0 self-end sm:self-center pl-10 sm:pl-0"
                     >
                       {(isAdmin || up.author.id === session?.user?.id) && (
                         <button
