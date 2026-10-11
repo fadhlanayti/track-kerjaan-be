@@ -520,7 +520,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const availableUsers = allUsers.filter(u => !memberIds.has(u.id))
 
   return (
-    <div className="flex flex-col gap-5 sm:gap-6 w-full max-w-5xl mx-auto px-1 sm:px-0">
+    <div className="flex flex-col gap-5 sm:gap-6 w-full max-w-6xl mx-auto px-1 sm:px-0">
 
       {/* Project Header Banner (Apple Style Frosted/Deep Card) */}
       <div className="rounded-2xl p-5 sm:p-6 bg-[#1D1D1F] text-white shadow-lg border border-black/10">
@@ -581,7 +581,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <MessageSquare size={22} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-zinc-900 group-hover:text-[#0071E3] transition-colors">Realtime Discussion</p>
+              <p className="text-sm font-semibold text-zinc-900 group-hover:text-[#0071E3] transition-colors">Discussion</p>
               <p className="text-xs text-zinc-500 mt-0.5">Project live chat channel</p>
             </div>
           </div>
@@ -590,7 +590,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* Main Content Layout: Progress Updates (Col 1) & Team Members (Col 2) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.8fr_1fr] gap-5 sm:gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[2.2fr_1fr] gap-5 sm:gap-6 items-start">
 
         {/* Column 1: Progress Updates */}
         <div className="flex flex-col gap-4 min-w-0">

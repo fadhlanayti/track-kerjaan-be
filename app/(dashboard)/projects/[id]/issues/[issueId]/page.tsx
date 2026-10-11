@@ -97,7 +97,7 @@ export default function IssueDetailPage({ params }: { params: Promise<{ id: stri
   const developers = members.filter(m => m.user.role === 'DEVELOPER' || m.user.role === 'ADMIN')
 
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto', width: '100%' }}>
+    <div style={{ maxWidth: '72rem', margin: '0 auto', width: '100%' }}>
       {/* Breadcrumb */}
       <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
         <a href={`/projects/${id}`} style={{ color: 'var(--accent)' }}>{issue.project.name}</a>

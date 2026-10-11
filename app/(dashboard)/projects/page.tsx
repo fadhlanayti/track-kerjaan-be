@@ -37,7 +37,7 @@ export default function ProjectsPage() {
   if (loading) return <div className="loading-state">Loading...</div>
 
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto', width: '100%' }}>
+    <div style={{ maxWidth: '72rem', margin: '0 auto', width: '100%' }}>
       <div className="page-header" style={{ marginBottom: '1.5rem' }}>
         <div>
           <h2 className="page-title">Projects</h2>
