@@ -757,8 +757,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
                         {/* Timeline Logs */}
                         {up.timelineLogs && up.timelineLogs.length > 0 && (
-                          <div className="flex flex-col gap-0">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-3">Update Log</span>
+                          <div className="flex flex-col gap-0" style={{ marginTop: '0.75rem' }}>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400" style={{ marginBottom: '1rem' }}>Update Log</span>
                             {[...up.timelineLogs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map((log, logIdx) => (
                               <div key={log.id} className="flex items-start gap-3 relative">
                                 {/* Vertical connector line */}
@@ -814,7 +814,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         {/* Add Timeline Log */}
                         {isDev && (
                           activeLogUpdateId === up.id ? (
-                            <div className="flex flex-col gap-2.5 p-3.5 rounded-xl bg-zinc-50 border border-zinc-200/80 mt-1">
+                            <div className="flex flex-col gap-2.5 p-3.5 rounded-xl mt-1" style={{ background: 'rgba(0,113,227,0.04)', border: '1.5px solid rgba(0,113,227,0.2)' }}>
                               <textarea
                                 value={logContent}
                                 onChange={e => setLogContent(e.target.value)}
